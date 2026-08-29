@@ -1,0 +1,267 @@
+C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\example-flow>..\dee_copy\dee.exe -x ".\atmos_mezz_encode_to_atmos_ddp_ec3.xml" -a ".\sollevante_lp_v01_DAMF_Nearfield_48k_24b_24.wav" -o "..\results\flat71_P2.eb3" --temp "X:\DolbyEncodingEngineTemp"
+[2026-08-29 08:07:57.231] INFO: Dolby Encoding Engine, version: 5.2.1-5994839.
+[2026-08-29 08:07:57.234] Features enabled by the license:  FUCKDOLBY, RAIN, internal, dolby_vision, dolby_audio, hdr10, ac4, sdr_plus.
+[2026-08-29 08:07:57.237] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dactlib.dll".
+[2026-08-29 08:07:57.242] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_aac.dll".
+[2026-08-29 08:07:57.244] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_aac.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.246] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_aac.dll" is a component of audio_filter type.
+[2026-08-29 08:07:57.251] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_ac4_ims.dll".
+[2026-08-29 08:07:57.253] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_ac4_ims.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.256] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_ac4_ims.dll" is a component of audio_filter type.
+[2026-08-29 08:07:57.259] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_cod.dll".
+[2026-08-29 08:07:57.261] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_cod.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.264] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_cod.dll" is a component of audio_filter type.
+[2026-08-29 08:07:57.269] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_convert_atmos_mezz.dll".
+[2026-08-29 08:07:57.271] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_convert_atmos_mezz.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.274] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_convert_atmos_mezz.dll" is a component of audio_filter type.
+[2026-08-29 08:07:57.279] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_ddp.dll".
+[2026-08-29 08:07:57.281] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_ddp.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.283] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_ddp.dll" is a component of audio_filter type.
+[2026-08-29 08:07:57.287] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_ddp_atmos.dll".
+[2026-08-29 08:07:57.290] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_ddp_atmos.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.292] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_ddp_atmos.dll" is a component of audio_filter type.
+[2026-08-29 08:07:57.297] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_ddp_single_pass.dll".
+[2026-08-29 08:07:57.300] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_ddp_single_pass.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.303] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_ddp_single_pass.dll" is a component of audio_filter type.
+[2026-08-29 08:07:57.306] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_ddp_transcode.dll".
+[2026-08-29 08:07:57.309] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_ddp_transcode.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.311] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_ddp_transcode.dll" is a component of audio_filter type.
+[2026-08-29 08:07:57.319] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_dthd.dll".
+[2026-08-29 08:07:57.322] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_dthd.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.324] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_dthd.dll" is a component of audio_filter type.
+[2026-08-29 08:07:57.327] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_edit_ddp.dll".
+[2026-08-29 08:07:57.330] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_edit_ddp.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.332] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_audio_filter_edit_ddp.dll" is a component of audio_filter type.
+[2026-08-29 08:07:57.334] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_plugin_custom_yuv_sink_buffered_writer.dll".
+[2026-08-29 08:07:57.338] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_plugin_custom_yuv_sink_pipe_cmd.dll".
+[2026-08-29 08:07:57.343] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_plugin_it_burn_subtitles.dll".
+[2026-08-29 08:07:57.349] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_plugin_j2k_dec_base.dll".
+[2026-08-29 08:07:57.354] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_plugin_j2k_dec_kakadu_dlb.dll".
+[2026-08-29 08:07:57.357] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_plugin_mp4_mux_base.dll".
+[2026-08-29 08:07:57.360] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_plugin_noise_base.dll".
+[2026-08-29 08:07:57.364] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_plugin_prores_dec_apple_dlb.dll".
+[2026-08-29 08:07:57.367] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_plugin_scaling_base.dll".
+[2026-08-29 08:07:57.372] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_plugin_tiff_dec_libtiff.dll".
+[2026-08-29 08:07:57.375] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_plugin_ts_mux_base.dll".
+[2026-08-29 08:07:57.380] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_42.dll".
+[2026-08-29 08:07:57.382] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_42.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.385] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_42.dll" is a component of video_filter type.
+[2026-08-29 08:07:57.392] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_5.dll".
+[2026-08-29 08:07:57.396] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_5.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.399] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_5.dll" is a component of video_filter type.
+[2026-08-29 08:07:57.405] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_7.dll".
+[2026-08-29 08:07:57.407] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_7.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.411] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_7.dll" is a component of video_filter type.
+[2026-08-29 08:07:57.415] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_81.dll".
+[2026-08-29 08:07:57.418] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_81.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.421] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_81.dll" is a component of video_filter type.
+[2026-08-29 08:07:57.424] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_82.dll".
+[2026-08-29 08:07:57.427] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_82.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.430] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_82.dll" is a component of video_filter type.
+[2026-08-29 08:07:57.433] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_hdr10.dll".
+[2026-08-29 08:07:57.436] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_hdr10.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.438] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_hdr10.dll" is a component of video_filter type.
+[2026-08-29 08:07:57.442] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_sdr.dll".
+[2026-08-29 08:07:57.444] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_sdr.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.446] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_dv_sdr.dll" is a component of video_filter type.
+[2026-08-29 08:07:57.450] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_extract_prores.dll".
+[2026-08-29 08:07:57.452] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_extract_prores.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.455] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_extract_prores.dll" is a component of video_filter type.
+[2026-08-29 08:07:57.458] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_hevc_encode.dll".
+[2026-08-29 08:07:57.461] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_hevc_encode.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.464] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_hevc_encode.dll" is a component of video_filter type.
+[2026-08-29 08:07:57.468] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_hevc_transcode.dll".
+[2026-08-29 08:07:57.470] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_hevc_transcode.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.472] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_hevc_transcode.dll" is a component of video_filter type.
+[2026-08-29 08:07:57.476] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_parse_mxf.dll".
+[2026-08-29 08:07:57.478] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_parse_mxf.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 08:07:57.481] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\dee_video_filter_parse_mxf.dll" is a component of video_filter type.
+[2026-08-29 08:07:57.485] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\hevc_enc_x265.dll".
+[2026-08-29 08:07:57.489] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\libelprocessor_dll.dll".
+[2026-08-29 08:07:57.491] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\libmetadata_postproc_dll.dll".
+[2026-08-29 08:07:57.493] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\libmezzanine.dll".
+[2026-08-29 08:07:57.496] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\libnbc_preproc_dll.dll".
+[2026-08-29 08:07:57.497] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\libpreproc.dll".
+[2026-08-29 08:07:57.499] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\librpu.dll".
+[2026-08-29 08:07:57.501] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\libslbc_dll.dll".
+[2026-08-29 08:07:57.503] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\libslidm_dll.dll".
+[2026-08-29 08:07:57.506] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\libvesmux.dll".
+[2026-08-29 08:07:57.509] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\libx265.dll".
+[2026-08-29 08:07:57.513] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\Mediainfo.dll".
+[2026-08-29 08:07:57.516] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\dee_copy\\tiff.dll".
+[2026-08-29 08:07:58.312] INFO: CPU: 7.6 % 16.8 %, MEM: 43686 MB 43676 MB.
+[2026-08-29 08:07:59.393] INFO: CPU: 12.3 % 13.2 %, MEM: 43683 MB 43680 MB.
+[2026-08-29 08:08:00.470] INTERNAL_INFO: framework: Assigned temp file for temp_dir_test: X:\DolbyEncodingEngineTemp\tmpN1JQrsH22364.
+[2026-08-29 08:08:00.474] INFO: framework: OutputWrapper: dee_audio_source_type : audio.ec3.atmos.
+[2026-08-29 08:08:00.477] INFO: framework: OutputWrapper sources: 1.
+[2026-08-29 08:08:00.480] INFO: framework: OutputWrapper source: audio.ec3.atmos.
+[2026-08-29 08:08:00.482] INFO: framework: StageObjectWithStorage set: dee_audio_source_type : audio.ec3.atmos.
+[2026-08-29 08:08:00.484] INFO: ec3: Dee_audio_source_type: audio.ec3.atmos.
+[2026-08-29 08:08:00.487] INFO: framework: OutputWrapper: dee_video_source_type : .
+[2026-08-29 08:08:00.489] INFO: framework: Running audio task.
+[2026-08-29 08:08:00.491] INFO: framework: Running audio input: input:audio:{atmos_mezz}.
+[2026-08-29 08:08:00.494] Passes in stage: 1
+[2026-08-29 08:08:00.474] INFO: CPU: 18.7 % 15.1 %, MEM: 43701 MB 43684 MB.
+[2026-08-29 08:08:01.016] Setting pass index: 0
+[2026-08-29 08:08:01.018] INFO: framework: Stage: audio input, Stage name: input:audio:{atmos_mezz}, Overall progress: 0.0.
+[2026-08-29 08:08:01.124] INFO: framework: Stage: audio input, Stage name: input:audio:{atmos_mezz}, Overall progress: 0.0.
+[2026-08-29 08:08:01.139] INTERNAL_INFO: atmos_mezz: Input filename = C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\example-flow\sollevante_lp_v01_DAMF_Nearfield_48k_24b_24.wav.
+[2026-08-29 08:08:01.143] INTERNAL_INFO: atmos_mezz: Assigned temp file for atmos_info_tmp: X:\DolbyEncodingEngineTemp\tmpbkLwWog22364.
+[2026-08-29 08:08:01.586] INFO: CPU: 22.4 % 14.8 %, MEM: 43693 MB 43687 MB.
+[2026-08-29 08:08:01.988] INFO: Max MEM usage in system during pass 0: 43700 MB.
+[2026-08-29 08:08:01.990] INFO: framework: Stage: audio input, Stage name: input:audio:{atmos_mezz}, Overall progress: 0.0.
+[2026-08-29 08:08:01.993] Input target: C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\example-flow\sollevante_lp_v01_DAMF_Nearfield_48k_24b_24.wav
+                          ffoa=3600.000000
+                          offset=3600.000000
+                          samples=12628000
+                          sampling_rate=48000
+                          timecode_frame_rate=24
+[2026-08-29 08:08:01.998] INFO: framework: Setting audio output: output:{{ec3}}.
+[2026-08-29 08:08:01.999] INFO: framework: OutputWrapper: dee_audio_input_source : sollevante_lp_v01_DAMF_Nearfield_48k_24b_24.wav.
+[2026-08-29 08:08:02.001] INFO: framework: StageObjectWithStorage set: dee_audio_input_source : sollevante_lp_v01_DAMF_Nearfield_48k_24b_24.wav.
+[2026-08-29 08:08:02.003] INFO: framework: OutputWrapper: dee_video_input_source : .
+[2026-08-29 08:08:02.006] INFO: framework: Running audio filter: encode_to_atmos_ddp.
+[2026-08-29 08:08:02.007] Passes in stage: 2
+[2026-08-29 08:08:02.516] Setting pass index: 0
+[2026-08-29 08:08:02.517] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Overall progress: 0.0.
+[2026-08-29 08:08:02.671] INFO: CPU: 10.3 % 14.2 %, MEM: 43669 MB 43684 MB.
+[2026-08-29 08:08:02.841] INTERNAL_INFO: encode_to_atmos_ddp: Starting measurement pass.
+[2026-08-29 08:08:02.843] INFO: encode_to_atmos_ddp: Starting measurement.
+[2026-08-29 08:08:02.844] INFO: encode_to_atmos_ddp: Dolby Atmos Storage Framework 1.5.0_5673674.
+[2026-08-29 08:08:02.857] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 0.0, Overall progress: 0.0.
+[2026-08-29 08:08:03.756] INFO: CPU: 22.3 % 14.8 %, MEM: 43749 MB 43687 MB.
+[2026-08-29 08:08:03.941] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 0.0, Overall progress: 0.0.
+[2026-08-29 08:08:04.836] INFO: CPU: 30.7 % 16.1 %, MEM: 43863 MB 43704 MB.
+[2026-08-29 08:08:05.022] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 1.6, Overall progress: 1.6.
+[2026-08-29 08:08:05.916] INFO: CPU: 17.8 % 16.0 %, MEM: 43863 MB 43724 MB.
+[2026-08-29 08:08:06.102] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 2.8, Overall progress: 2.8.
+[2026-08-29 08:08:06.998] INFO: CPU: 15.0 % 16.0 %, MEM: 43870 MB 43740 MB.
+[2026-08-29 08:08:07.183] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 4.4, Overall progress: 4.4.
+[2026-08-29 08:08:08.078] INFO: CPU: 14.0 % 16.0 %, MEM: 43872 MB 43754 MB.
+[2026-08-29 08:08:08.263] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 5.6, Overall progress: 5.6.
+[2026-08-29 08:08:09.161] INFO: CPU: 10.6 % 15.9 %, MEM: 43871 MB 43764 MB.
+[2026-08-29 08:08:09.346] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 6.8, Overall progress: 6.8.
+[2026-08-29 08:08:10.244] INFO: CPU: 18.3 % 15.9 %, MEM: 43861 MB 43773 MB.
+[2026-08-29 08:08:10.430] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 8.4, Overall progress: 8.4.
+[2026-08-29 08:08:11.328] INFO: CPU: 15.9 % 15.6 %, MEM: 43856 MB 43779 MB.
+[2026-08-29 08:08:11.514] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 9.6, Overall progress: 9.6.
+[2026-08-29 08:08:12.410] INFO: CPU: 14.5 % 15.4 %, MEM: 43858 MB 43785 MB.
+[2026-08-29 08:08:12.596] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 10.8, Overall progress: 10.8.
+[2026-08-29 08:08:13.495] INFO: CPU: 17.6 % 15.4 %, MEM: 43721 MB 43788 MB.
+[2026-08-29 08:08:13.681] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 12.4, Overall progress: 12.4.
+[2026-08-29 08:08:14.579] INFO: CPU: 22.1 % 15.6 %, MEM: 43758 MB 43784 MB.
+[2026-08-29 08:08:14.765] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 13.6, Overall progress: 13.6.
+[2026-08-29 08:08:15.663] INFO: CPU: 17.4 % 15.8 %, MEM: 43780 MB 43783 MB.
+[2026-08-29 08:08:15.848] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 14.8, Overall progress: 14.8.
+[2026-08-29 08:08:16.746] INFO: CPU: 13.4 % 15.8 %, MEM: 43782 MB 43783 MB.
+[2026-08-29 08:08:16.931] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 16.0, Overall progress: 16.0.
+[2026-08-29 08:08:17.829] INFO: CPU: 8.5 % 15.8 %, MEM: 43776 MB 43783 MB.
+[2026-08-29 08:08:18.014] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 17.2, Overall progress: 17.2.
+[2026-08-29 08:08:18.912] INFO: CPU: 11.6 % 15.6 %, MEM: 43775 MB 43782 MB.
+[2026-08-29 08:08:19.098] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 18.4, Overall progress: 18.4.
+[2026-08-29 08:08:19.998] INFO: CPU: 15.6 % 15.5 %, MEM: 43771 MB 43782 MB.
+[2026-08-29 08:08:20.184] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 19.6, Overall progress: 19.6.
+[2026-08-29 08:08:21.079] INFO: CPU: 10.4 % 15.5 %, MEM: 43772 MB 43781 MB.
+[2026-08-29 08:08:21.265] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 21.2, Overall progress: 21.2.
+[2026-08-29 08:08:22.164] INFO: CPU: 11.7 % 15.4 %, MEM: 43766 MB 43781 MB.
+[2026-08-29 08:08:22.350] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 22.4, Overall progress: 22.4.
+[2026-08-29 08:08:23.247] INFO: CPU: 10.5 % 15.2 %, MEM: 43765 MB 43780 MB.
+[2026-08-29 08:08:23.433] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 23.6, Overall progress: 23.6.
+[2026-08-29 08:08:24.328] INFO: CPU: 12.4 % 15.1 %, MEM: 43734 MB 43779 MB.
+[2026-08-29 08:08:24.514] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 24.8, Overall progress: 24.8.
+[2026-08-29 08:08:25.411] INFO: CPU: 15.0 % 15.0 %, MEM: 43734 MB 43778 MB.
+[2026-08-29 08:08:25.596] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 26.4, Overall progress: 26.4.
+[2026-08-29 08:08:26.494] INFO: CPU: 9.9 % 14.9 %, MEM: 43732 MB 43776 MB.
+[2026-08-29 08:08:26.679] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 27.6, Overall progress: 27.6.
+[2026-08-29 08:08:27.577] INFO: CPU: 8.6 % 14.8 %, MEM: 43729 MB 43774 MB.
+[2026-08-29 08:08:27.761] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 28.8, Overall progress: 28.8.
+[2026-08-29 08:08:28.656] INFO: CPU: 8.0 % 14.8 %, MEM: 43732 MB 43773 MB.
+[2026-08-29 08:08:28.842] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 30.4, Overall progress: 30.4.
+[2026-08-29 08:08:29.739] INFO: CPU: 11.1 % 14.8 %, MEM: 43736 MB 43772 MB.
+[2026-08-29 08:08:29.925] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 31.6, Overall progress: 31.6.
+[2026-08-29 08:08:30.822] INFO: CPU: 28.6 % 14.7 %, MEM: 43736 MB 43771 MB.
+[2026-08-29 08:08:31.007] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 32.8, Overall progress: 32.8.
+[2026-08-29 08:08:31.904] INFO: CPU: 7.9 % 14.6 %, MEM: 43728 MB 43769 MB.
+[2026-08-29 08:08:32.089] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 34.4, Overall progress: 34.4.
+[2026-08-29 08:08:32.989] INFO: CPU: 8.1 % 14.5 %, MEM: 43726 MB 43768 MB.
+[2026-08-29 08:08:33.176] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 35.6, Overall progress: 35.6.
+[2026-08-29 08:08:34.071] INFO: CPU: 8.6 % 14.4 %, MEM: 43726 MB 43767 MB.
+[2026-08-29 08:08:34.258] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 37.2, Overall progress: 37.2.
+[2026-08-29 08:08:35.154] INFO: CPU: 11.7 % 14.3 %, MEM: 43726 MB 43766 MB.
+[2026-08-29 08:08:35.339] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 38.4, Overall progress: 38.4.
+[2026-08-29 08:08:36.238] INFO: CPU: 55.0 % 14.4 %, MEM: 43781 MB 43765 MB.
+[2026-08-29 08:08:36.423] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 39.6, Overall progress: 39.6.
+[2026-08-29 08:08:36.486] INFO: encode_to_atmos_ddp: Measurement done. Final Integrated loudness: -27.253452.
+[2026-08-29 08:08:36.490] INFO: encode_to_atmos_ddp: [Source loudness] measured_loudness=-27.25.
+[2026-08-29 08:08:36.493] INFO: encode_to_atmos_ddp: [Source loudness] gating=level.
+[2026-08-29 08:08:36.494] INFO: encode_to_atmos_ddp: [Source loudness] speech_percentage=0.80.
+[2026-08-29 08:08:36.497] INFO: encode_to_atmos_ddp: [Source loudness] dialogue_loudness=-37.53.
+[2026-08-29 08:08:36.499] INFO: encode_to_atmos_ddp: [Source loudness] itu_loudness=-27.25.
+[2026-08-29 08:08:36.502] INFO: encode_to_atmos_ddp: [Source loudness] loudness_range=20.13.
+[2026-08-29 08:08:36.503] INFO: encode_to_atmos_ddp: [Source loudness] sample_peak=-3.89.
+[2026-08-29 08:08:36.506] INFO: encode_to_atmos_ddp: [Source loudness] true_peak=-3.89.
+[2026-08-29 08:08:36.507] INTERNAL_INFO: encode_to_atmos_ddp: Measurement pass completed in 33.664663 seconds.
+[2026-08-29 08:08:36.639] INFO: Max MEM usage in system during pass 0: 43918 MB.
+[2026-08-29 08:08:36.641] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 40.0, Overall progress: 40.0.
+[2026-08-29 08:08:36.644] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: measuring, Stage progress: 40.0, Overall progress: 40.0.
+[2026-08-29 08:08:37.260] Setting pass index: 1
+[2026-08-29 08:08:37.260] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Overall progress: 40.0.
+[2026-08-29 08:08:37.321] INFO: CPU: 21.1 % 14.4 %, MEM: 43738 MB 43764 MB.
+[2026-08-29 08:08:37.582] INTERNAL_INFO: encode_to_atmos_ddp: Starting encoder pass.
+[2026-08-29 08:08:37.585] INFO: encode_to_atmos_ddp: Dolby Atmos Storage Framework 1.5.0_5673674.
+[2026-08-29 08:08:37.587] INFO: encode_to_atmos_ddp: Initializing Composite Master: 00: in: C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\example-flow\sollevante_lp_v01_DAMF_Nearfield_48k_24b_24.wav, prepend: 0, start: 0, end: 0, append 0.
+[2026-08-29 08:08:37.598] INFO: framework: Stage: audio filter, Stage name: encode_to_atmos_ddp, Step: encoding, Stage progress: 40.0, Overall progress: 40.0.
+[2026-08-29 08:08:37.720] INFO: encode_to_atmos_ddp: Encoding Backend: AtmosProcessor.
+[2026-08-29 08:08:38.194] Access violation occurred at address: 0x00007FFE4E1106BF
+[2026-08-29 08:08:38.230] Stacktrace follows:
+                          0     : 0x7ff73b3068cb
+                          1     : 0x7ff8400cf720   UnhandledExceptionFilter
+                          2     : 0x7ff842da6410   strncpy
+                          3     : 0x7ff842d5f8a0   _C_specific_handler
+                          4     : 0x7ff842da4710   _chkstk
+                          5     : 0x7ff842c61c30   RtlLocateExtendedFeature
+                          6     : 0x7ff842da40c0   KiUserExceptionDispatcher
+                          7     : 0x7ffe4e1106bf
+                          8     : 0x7ffe4e11600d
+                          9     : 0x7ffe4e156def
+                          10    : 0x7ffe4e10ef2f
+                          11    : 0x7ffe4e1f47e0   dlb_phoenix_get_version_handle
+                          12    : 0x7ffe4e1f47e0   dlb_phoenix_get_version_handle
+                          13    : 0x7ffe4e1f47e0   dlb_phoenix_get_version_handle
+                          14    : 0x7ffe4e1f47e0   dlb_phoenix_get_version_handle
+                          15    : 0x7ffe4e1f47e0   dlb_phoenix_get_version_handle
+                          16    : 0x7ffe4e1f47e0   dlb_phoenix_get_version_handle
+                          17    : 0x7ffe4e1e7b10
+                          18    : 0x7ffe4e1ef255
+                          19    : 0x7ff73b32c115
+                          20    : 0x7ff73b32afda
+                          21    : 0x7ff73b32b5f4
+                          22    : 0x7ff73b32a6c9
+                          23    : 0x7ff73b30b759
+                          24    : 0x7ff73b30db67
+                          25    : 0x7ff73b51f3b9
+                          26    : 0x7ff8409de940   BaseThreadInitThunk
+                          27    : 0x7ff842cc7bf0   RtlUserThreadStart
+
+WARNING: ProcessCollector: Abnormal sub-process collecting will not be performed.
+[2026-08-29 08:08:38.338] ERROR: encode_to_atmos_ddp: Unknown error.
+[2026-08-29 08:08:38.401] INFO: CPU: 31.6 % 14.5 %, MEM: 43738 MB 43764 MB.
+[2026-08-29 08:08:38.462] INFO: Max MEM usage in system during pass 1: 43792 MB.
+[2026-08-29 08:08:38.465] ERROR: framework: Audio filter stage (encode_to_atmos_ddp) run failed.
+[2026-08-29 08:08:38.467] ERROR: framework: Audio task failed.
+[2026-08-29 08:08:38.467] ERROR: Workflow execution failed.
+[2026-08-29 08:08:38.469] INFO: framework: Overall progress: 40.0.
+[2026-08-29 08:08:38.509] INFO: Average CPU usage in system: 14.5 %.
+[2026-08-29 08:08:38.510] INFO: Average MEM usage in system: 43764 MB.
+[2026-08-29 08:08:38.513] INFO: Max MEM usage in system: 43918 MB.
+[2026-08-29 08:08:38.514] INFO: Average CPU used by DEE process: 3 %.
+[2026-08-29 08:08:38.516] INFO: Max MEM used by DEE process: 105 MB.
+[2026-08-29 08:08:38.517] --- Execution summary starts here ---
+                          INTERNAL_INFO: encode_to_atmos_ddp: Measurement pass completed in 33.664663 seconds.
+                          ERROR: encode_to_atmos_ddp: Unknown error.
+                          ERROR: framework: Audio filter stage (encode_to_atmos_ddp) run failed.
+                          ERROR: framework: Audio task failed.
+                          ERROR: Workflow execution failed.
+Time elapsed: 41.7969 seconds
+Application exits with error code: 10
+WARNING: ProcessCollector: Abnormal sub-process collecting will not be performed.

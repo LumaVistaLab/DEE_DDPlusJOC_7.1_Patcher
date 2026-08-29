@@ -1,0 +1,12 @@
+dee_copy/
+dll_original/
+dll_patched/
+
+DEE_DDPlusJOC_7.1_Patcher.code-workspace
+
+*.wav
+*.eb3
+*.pkg
+*.dmg
+
+__pycache__/
