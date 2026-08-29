@@ -1,9 +1,18 @@
 # Automated reverse engineering and validation
 
-This directory contains the repository's isolated flat-7.1 automation. It never
-edits files under `example-flow`, and it does not integrate or call the
-`DolbySurrEX-flag-patcher` project. Dolby Surround EX flag work is intentionally
-deferred until a later 5.1 Dolby PLIIx phase.
+This directory contains the repository's isolated flat-7.1 encoding automation
+and read-only PLIIx compatibility-core analysis. The encoder runner never edits
+files under `example-flow` and never mutates Surround EX metadata. That metadata
+step remains a separate, explicit invocation of the bundled
+`DolbySurrEX-flag-patcher` project.
+
+The stereo-compatibility invariant is profile-specific: streaming Pro Logic II
+uses the Atmos `Lt/Rt (Pro Logic II) w/Phase 90` path. Blu-ray permits Lo/Ro or
+traditional Lt/Rt but not the Pro Logic II Lt/Rt selector; its surround phase
+rotation is supplied by the bitstream encoder preprocessing. The current
+Blu-ray workflow keeps Lo/Ro as its default. The 7.1-to-5.1 PLIIx matrix itself
+remains phase-neutral. See `PHASE_SHIFT_FINDINGS.md` for the binary and signal
+evidence.
 
 Primary commands (run from the repository root):
 
@@ -30,6 +39,34 @@ Its adjacent JSON report records the exact two-second listening schedule,
 coordinates, frequencies, and SHA-256. The source master and report are kept in
 `automation/work/test_audio`; the DD+ JOC result follows the normal retained
 `results`, `patch_logs`, and `automation/evidence/runs` paths.
+
+Analyze the encoded 5.1 AC-3 compatibility core against the documented Dolby
+PLIIx 7.1-to-5.1 coefficients:
+
+```powershell
+python .\automation\pliix_core_analysis.py `
+  .\results\atmos916_flat71_P2P3_r03.eb3 `
+  --schedule .\automation\work\test_audio\atmos_916_channel_id_adm.wav.json `
+  --output-dir .\automation\evidence\pliix\atmos916_flat71_P2P3
+```
+
+The analyzer extracts only AC-3 core frames, decodes them to six channels with
+FFmpeg, measures the four isolated surround events, and writes a JSON evidence
+report. It refuses to overwrite an existing evidence directory. See
+`PLIIX_FINDINGS.md` for the validated result.
+
+After the signal measurement passes, set and verify the separate Surround EX
+metadata stage explicitly:
+
+```powershell
+python .\DolbySurrEX-flag-patcher-2966e09\patch_dsur_ex.py `
+  .\results\atmos916_flat71_P2P3_r03.eb3 `
+  .\results\atmos916_flat71_P2P3_r03.dsur-ex.eb3
+python .\DolbySurrEX-flag-patcher-2966e09\patch_dsur_ex.py `
+  --check .\results\atmos916_flat71_P2P3_r03.dsur-ex.eb3
+python .\automation\validate.py stream `
+  .\results\atmos916_flat71_P2P3_r03.dsur-ex.eb3
+```
 
 The automation preflight pins the generated master to SHA-256
 `bf67c22de5ea8b1c9ea776945f3e2bab46bf6356753f908dfd7942e8f751ad83`.

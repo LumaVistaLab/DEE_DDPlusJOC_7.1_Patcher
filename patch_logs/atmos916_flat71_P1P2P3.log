@@ -1,0 +1,118 @@
+C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runs\atmos916_flat71_P1P2P3>"C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\dee.exe" -x "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\example-flow\atmos_mezz_encode_to_atmos_ddp_ec3.xml" -a "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\test_audio\atmos_916_channel_id_adm.wav" -o "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\results\atmos916_flat71_P1P2P3.eb3" --temp X:\DolbyEncodingEngineTemp
+[2026-08-29 16:57:27.930] INFO: Dolby Encoding Engine, version: 5.2.1-5994839.
+[2026-08-29 16:57:27.932] Features enabled by the license:  FUCKDOLBY, RAIN, internal, dolby_vision, dolby_audio, hdr10, ac4, sdr_plus.
+[2026-08-29 16:57:27.934] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dactlib.dll".
+[2026-08-29 16:57:28.055] ERROR: ��̬���ӿ�(DLL)��ʼ������ʧ�ܡ�
+[2026-08-29 16:57:28.055] ERROR: Failed to load library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_aac.dll".
+[2026-08-29 16:57:28.058] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_ac4_ims.dll".
+[2026-08-29 16:57:28.058] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_ac4_ims.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.058] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_ac4_ims.dll" is a component of audio_filter type.
+[2026-08-29 16:57:28.059] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_cod.dll".
+[2026-08-29 16:57:28.059] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_cod.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.059] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_cod.dll" is a component of audio_filter type.
+[2026-08-29 16:57:28.062] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_convert_atmos_mezz.dll".
+[2026-08-29 16:57:28.063] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_convert_atmos_mezz.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.063] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_convert_atmos_mezz.dll" is a component of audio_filter type.
+[2026-08-29 16:57:28.153] ERROR: ��̬���ӿ�(DLL)��ʼ������ʧ�ܡ�
+[2026-08-29 16:57:28.153] ERROR: Failed to load library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_ddp.dll".
+[2026-08-29 16:57:28.240] ERROR: ��̬���ӿ�(DLL)��ʼ������ʧ�ܡ�
+[2026-08-29 16:57:28.240] ERROR: Failed to load library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_ddp_atmos.dll".
+[2026-08-29 16:57:28.326] ERROR: ��̬���ӿ�(DLL)��ʼ������ʧ�ܡ�
+[2026-08-29 16:57:28.326] ERROR: Failed to load library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_ddp_single_pass.dll".
+[2026-08-29 16:57:28.328] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_ddp_transcode.dll".
+[2026-08-29 16:57:28.328] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_ddp_transcode.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.328] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_ddp_transcode.dll" is a component of audio_filter type.
+[2026-08-29 16:57:28.424] ERROR: ��̬���ӿ�(DLL)��ʼ������ʧ�ܡ�
+[2026-08-29 16:57:28.424] ERROR: Failed to load library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_dthd.dll".
+[2026-08-29 16:57:28.425] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_edit_ddp.dll".
+[2026-08-29 16:57:28.425] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_edit_ddp.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.425] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_edit_ddp.dll" is a component of audio_filter type.
+[2026-08-29 16:57:28.426] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_plugin_custom_yuv_sink_buffered_writer.dll".
+[2026-08-29 16:57:28.427] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_plugin_custom_yuv_sink_pipe_cmd.dll".
+[2026-08-29 16:57:28.428] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_plugin_it_burn_subtitles.dll".
+[2026-08-29 16:57:28.434] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_plugin_j2k_dec_base.dll".
+[2026-08-29 16:57:28.436] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_plugin_j2k_dec_kakadu_dlb.dll".
+[2026-08-29 16:57:28.436] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_plugin_mp4_mux_base.dll".
+[2026-08-29 16:57:28.437] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_plugin_noise_base.dll".
+[2026-08-29 16:57:28.438] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_plugin_prores_dec_apple_dlb.dll".
+[2026-08-29 16:57:28.438] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_plugin_scaling_base.dll".
+[2026-08-29 16:57:28.440] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_plugin_tiff_dec_libtiff.dll".
+[2026-08-29 16:57:28.440] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_plugin_ts_mux_base.dll".
+[2026-08-29 16:57:28.443] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_42.dll".
+[2026-08-29 16:57:28.443] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_42.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.443] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_42.dll" is a component of video_filter type.
+[2026-08-29 16:57:28.447] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_5.dll".
+[2026-08-29 16:57:28.447] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_5.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.447] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_5.dll" is a component of video_filter type.
+[2026-08-29 16:57:28.450] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_7.dll".
+[2026-08-29 16:57:28.450] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_7.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.450] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_7.dll" is a component of video_filter type.
+[2026-08-29 16:57:28.451] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_81.dll".
+[2026-08-29 16:57:28.451] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_81.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.451] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_81.dll" is a component of video_filter type.
+[2026-08-29 16:57:28.452] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_82.dll".
+[2026-08-29 16:57:28.452] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_82.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.452] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_82.dll" is a component of video_filter type.
+[2026-08-29 16:57:28.453] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_hdr10.dll".
+[2026-08-29 16:57:28.453] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_hdr10.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.453] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_hdr10.dll" is a component of video_filter type.
+[2026-08-29 16:57:28.455] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_sdr.dll".
+[2026-08-29 16:57:28.455] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_sdr.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.455] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_dv_sdr.dll" is a component of video_filter type.
+[2026-08-29 16:57:28.455] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_extract_prores.dll".
+[2026-08-29 16:57:28.455] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_extract_prores.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.455] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_extract_prores.dll" is a component of video_filter type.
+[2026-08-29 16:57:28.457] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_hevc_encode.dll".
+[2026-08-29 16:57:28.457] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_hevc_encode.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.457] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_hevc_encode.dll" is a component of video_filter type.
+[2026-08-29 16:57:28.458] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_hevc_transcode.dll".
+[2026-08-29 16:57:28.458] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_hevc_transcode.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.458] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_hevc_transcode.dll" is a component of video_filter type.
+[2026-08-29 16:57:28.461] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_parse_mxf.dll".
+[2026-08-29 16:57:28.461] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_parse_mxf.dll" is a DEE's component: Version=5.2.1.
+[2026-08-29 16:57:28.461] INTERNAL_INFO: "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_video_filter_parse_mxf.dll" is a component of video_filter type.
+[2026-08-29 16:57:28.463] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\hevc_enc_x265.dll".
+[2026-08-29 16:57:28.463] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\libelprocessor_dll.dll".
+[2026-08-29 16:57:28.463] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\libmetadata_postproc_dll.dll".
+[2026-08-29 16:57:28.463] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\libmezzanine.dll".
+[2026-08-29 16:57:28.463] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\libnbc_preproc_dll.dll".
+[2026-08-29 16:57:28.463] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\libpreproc.dll".
+[2026-08-29 16:57:28.463] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\librpu.dll".
+[2026-08-29 16:57:28.463] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\libslbc_dll.dll".
+[2026-08-29 16:57:28.463] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\libslidm_dll.dll".
+[2026-08-29 16:57:28.465] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\libvesmux.dll".
+[2026-08-29 16:57:28.466] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\libx265.dll".
+[2026-08-29 16:57:28.467] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\Mediainfo.dll".
+[2026-08-29 16:57:28.468] INTERNAL_INFO: Loading library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\tiff.dll".
+[2026-08-29 16:57:29.011] INFO: CPU: 13.9 % 21.7 %, MEM: 34015 MB 34012 MB.
+[2026-08-29 16:57:30.098] INFO: CPU: 6.7 % 17.7 %, MEM: 34015 MB 34014 MB.
+[2026-08-29 16:57:31.185] INFO: CPU: 16.7 % 17.8 %, MEM: 34086 MB 34031 MB.
+[2026-08-29 16:57:32.268] INFO: CPU: 38.7 % 19.4 %, MEM: 34207 MB 34058 MB.
+[2026-08-29 16:57:33.354] INFO: CPU: 17.8 % 21.6 %, MEM: 34294 MB 34100 MB.
+[2026-08-29 16:57:34.435] INFO: CPU: 18.8 % 22.5 %, MEM: 34375 MB 34140 MB.
+[2026-08-29 16:57:35.502] INFO: CPU: 27.9 % 24.3 %, MEM: 34542 MB 34189 MB.
+[2026-08-29 16:57:36.585] INFO: CPU: 17.7 % 24.4 %, MEM: 34628 MB 34240 MB.
+[2026-08-29 16:57:36.978] ERROR: Unknown filter (encode_to_atmos_ddp).
+[2026-08-29 16:57:36.978] ERROR: Could not build workflow.
+[2026-08-29 16:57:37.020] INFO: Average CPU usage in system: 24.4 %.
+[2026-08-29 16:57:37.020] INFO: Average MEM usage in system: 34260 MB.
+[2026-08-29 16:57:37.020] INFO: Max MEM usage in system: 34687 MB.
+[2026-08-29 16:57:37.020] INFO: Average CPU used by DEE process: 0 %.
+[2026-08-29 16:57:37.020] INFO: Max MEM used by DEE process: 49 MB.
+[2026-08-29 16:57:37.021] --- Execution summary starts here ---
+                          ERROR: ��̬���ӿ�(DLL)��ʼ������ʧ�ܡ�
+                          ERROR: Failed to load library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_aac.dll".
+                          ERROR: ��̬���ӿ�(DLL)��ʼ������ʧ�ܡ�
+                          ERROR: Failed to load library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_ddp.dll".
+                          ERROR: ��̬���ӿ�(DLL)��ʼ������ʧ�ܡ�
+                          ERROR: Failed to load library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_ddp_atmos.dll".
+                          ERROR: ��̬���ӿ�(DLL)��ʼ������ʧ�ܡ�
+                          ERROR: Failed to load library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_ddp_single_pass.dll".
+                          ERROR: ��̬���ӿ�(DLL)��ʼ������ʧ�ܡ�
+                          ERROR: Failed to load library "C:\Users\LumaVista\Documents\Codex Project Roots\DEE_DDPlusJOC_7.1_Patcher\automation\work\runtime_820348488476\\dee_audio_filter_dthd.dll".
+                          ERROR: Unknown filter (encode_to_atmos_ddp).
+                          ERROR: Could not build workflow.
+Time elapsed: 9.59847 seconds
+Application exits with error code: 10
+Time elapsed: 9.7588 seconds
+Application exits with error code: 3221225477

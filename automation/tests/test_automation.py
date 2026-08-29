@@ -5,6 +5,7 @@ import shutil
 import sys
 import unittest
 import uuid
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 AUTOMATION_DIR = Path(__file__).resolve().parents[1]
@@ -30,6 +31,10 @@ from generate_916_test_master import (  # noqa: E402
     build_chna,
     read_riff_chunks,
 )
+from pliix_core_analysis import (  # noqa: E402
+    summarize_surround_matrix,
+    summarize_surround_phase_shift,
+)
 
 
 class AutomationTests(unittest.TestCase):
@@ -45,10 +50,10 @@ class AutomationTests(unittest.TestCase):
     def tearDown(self) -> None:
         shutil.rmtree(self.temp)
 
-    def test_config_is_flat_layout_only(self) -> None:
+    def test_config_separates_encoding_and_pliix_metadata_stages(self) -> None:
         config = load_config()
         self.assertIn("flat 7.1", config["scope"])
-        self.assertIn("out of scope", config["scope"])
+        self.assertIn("separate stages", config["scope"])
         self.assertEqual(config["cases"][0]["id"], "flat71_P2P3")
         self.assertFalse(config["cases"][0]["gated"])
         self.assertTrue(config["cases"][1]["gated"])
@@ -56,6 +61,20 @@ class AutomationTests(unittest.TestCase):
         self.assertFalse(config["cases"][2]["gated"])
         self.assertIn("automation/work/test_audio", config["cases"][2]["input_audio"])
         self.assertEqual(len(config["cases"][2]["expected_input_sha256"]), 64)
+        self.assertEqual(config["cases"][3]["id"], "atmos916_flat71_P1P2P3")
+        self.assertTrue(config["cases"][3]["gated"])
+        self.assertIn("PLIIx", config["cases"][3]["purpose"])
+
+    def test_bluray_workflow_keeps_loro_default_and_rejects_plii_selector(self) -> None:
+        workflow = AUTOMATION_DIR.parent / "example-flow" / "atmos_mezz_encode_to_atmos_ddp_ec3.xml"
+        root = ET.parse(workflow).getroot()
+        encoder_mode = root.findtext("./filter/audio/encode_to_atmos_ddp/encoder_mode")
+        preferred = root.findtext(
+            "./filter/audio/encode_to_atmos_ddp/downmix/preferred_downmix_mode"
+        )
+        self.assertEqual(encoder_mode, "bluray")
+        self.assertEqual(preferred, "loro")
+        self.assertNotEqual(preferred, "ltrt-pl2")
 
     def test_916_adm_rewrite_has_16_matching_tracks(self) -> None:
         template = AUTOMATION_DIR.parent / "example-flow" / "sollevante_lp_v01_DAMF_Nearfield_48k_24b_24.wav"
@@ -163,6 +182,60 @@ class AutomationTests(unittest.TestCase):
         for offset, expected, replacement in PATCHES:
             self.assertEqual(source[offset : offset + len(expected)], expected)
             self.assertEqual(output[offset : offset + len(replacement)], replacement)
+
+    def test_pliix_coefficient_matcher_uses_documented_matrix(self) -> None:
+        def event(label: str, ls: float, rs: float, phase: float = 0.0) -> dict[str, object]:
+            return {
+                "label": label,
+                "surround_pair": {
+                    "ls_tone_dbfs": ls,
+                    "rs_tone_dbfs": rs,
+                    "weaker_to_stronger_db": min(ls, rs) - max(ls, rs),
+                    "rs_minus_ls_phase_degrees": phase,
+                },
+            }
+
+        report = summarize_surround_matrix([
+            event("Lss", -20.0, -160.0),
+            event("Rss", -160.0, -20.0),
+            event("Lrs", -21.2, -26.2),
+            event("Rrs", -26.2, -21.2),
+        ])
+        self.assertEqual(report["verdict"], "matches_dolby_pliix_7_1_to_5_1_coefficients")
+        self.assertTrue(report["coefficients_match"])
+        self.assertTrue(report["rear_pair_phases_match"])
+
+    def test_surround_phase_shift_screen_removes_common_codec_delay(self) -> None:
+        sample_rate = 48000
+        delay_samples = 256
+
+        def event(label: str, frequency: float, start: float, channel: str, shift: float) -> dict[str, object]:
+            source_phase = (360.0 * frequency * start - 90.0 + 180.0) % 360.0 - 180.0
+            output_phase = (
+                source_phase - 360.0 * frequency * delay_samples / sample_rate + shift + 180.0
+            ) % 360.0 - 180.0
+            return {
+                "label": label,
+                "frequency_hz": frequency,
+                "analysis_window_seconds": [start, start + 1.0],
+                "dominant_tone_channels": [channel],
+                "channels": {channel: {"tone_phase_degrees": output_phase}},
+            }
+
+        events = [
+            event("L", 440.0, 2.25, "L", 0.0),
+            event("R", 554.37, 4.25, "R", 0.0),
+            event("C", 659.26, 6.25, "C", 0.0),
+            event("Lss", 493.88, 14.25, "Ls", -89.0),
+            event("Rss", 622.25, 16.25, "Rs", -91.0),
+            event("Lrs", 523.25, 18.25, "Ls", -88.5),
+            event("Rrs", 698.46, 20.25, "Rs", -90.5),
+        ]
+        report = summarize_surround_phase_shift(events, sample_rate=sample_rate)
+        self.assertEqual(report["verdict"], "surround_90_degree_phase_shift_observed")
+        self.assertTrue(report["surround_90_degree_phase_shift_observed"])
+        self.assertEqual(report["observed_shift_degrees"], -90.0)
+        self.assertEqual(report["estimated_common_delay_samples"], delay_samples)
 
 
 if __name__ == "__main__":

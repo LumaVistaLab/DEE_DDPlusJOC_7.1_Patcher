@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "scope": "DD+ JOC flat 7.1 only; Dolby Surround EX flag patching is explicitly out of scope",
+  "scope": "DD+ JOC flat 7.1 encoding; PLIIx core analysis and Dolby Surround EX metadata mutation are separate stages",
   "expected_original_sha256": "3d66bcec36031fd48e6565d15f05fea656642377ca4f8c98cdce1cce8b7e95d2",
   "paths": {
     "original_dll": "dll_original/dee_audio_filter_ddp_atmos.dll",
@@ -43,6 +43,13 @@
     "evolution payload",
     "JOC",
     "OAMD",
+    "downmix_type_7to5",
+    "downmix_type_5to2",
+    "phaseshift_90deg_5to2",
+    "51-to-20_LsRs90degPhaseShift",
+    "Invalid phase shift enable flag for 5.0 to 2.0 downmix",
+    "downmix_pl2x",
+    "downmix_loro",
     "downmix configuration",
     "channel configuration"
   ],
@@ -80,6 +87,18 @@
       "log_name": "atmos916_flat71_P2P3.log",
       "purpose": "9.1.6 channel identification through the validated flat-7.1 DD+ JOC patch",
       "gated": false
+    },
+    {
+      "id": "atmos916_flat71_P1P2P3",
+      "candidate_dll": "dll_patched/dee_audio_filter_ddp_atmos_cfg21_P1P2P3.dll",
+      "expected_sha256": "82fef3a4f9683cde7d51dd42ee755c92c60f9be829960694edc1746b71af2b05",
+      "input_audio": "automation/work/test_audio/atmos_916_channel_id_adm.wav",
+      "expected_input_sha256": "bf67c22de5ea8b1c9ea776945f3e2bab46bf6356753f908dfd7942e8f751ad83",
+      "output_name": "atmos916_flat71_P1P2P3.eb3",
+      "log_name": "atmos916_flat71_P1P2P3.log",
+      "purpose": "Experimental 7.1 AtmosProcessor render plus flat-7.1 JOC output; first dynamic candidate for 7.1-to-5.1 PLIIx core analysis",
+      "gated": true,
+      "gate_reason": "Experimental PLIIx-phase candidate; run only with an explicit gate override. Successful encoding alone does not prove PLIIx matrixing."
     }
   ]
 }

@@ -41,7 +41,7 @@
           <loro_surround_mix_level>-3</loro_surround_mix_level>    <!-- One of: -1.5, -3, -4.5, -6, -inf -->
           <ltrt_center_mix_level>-3</ltrt_center_mix_level>    <!-- One of: +3, +1.5, 0, -1.5, -3, -4.5, -6, -inf -->
           <ltrt_surround_mix_level>-3</ltrt_surround_mix_level>    <!-- One of: -1.5, -3, -4.5, -6, -inf -->
-          <preferred_downmix_mode>loro</preferred_downmix_mode>    <!-- One of: loro, ltrt, ltrt-pl2, not_indicated -->
+          <preferred_downmix_mode>loro</preferred_downmix_mode>    <!-- Blu-ray allows Lo/Ro or traditional Lt/Rt; ltrt-pl2 is unsupported -->
         </downmix>
         <custom_trims>
           <surround_trim_5_1>auto</surround_trim_5_1>    <!-- One of: 0, -3, -6, -9, auto -->

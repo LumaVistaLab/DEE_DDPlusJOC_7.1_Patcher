@@ -11,7 +11,7 @@ def baseline(config_path: Path | None) -> int:
     config = load_config(config_path)
     evidence_root = repo_path(config["paths"]["evidence_dir"]) / "baseline" / timestamp_id()
     summary = {
-        "scope": "flat 7.1 layout only; Dolby Surround EX integration deferred",
+        "scope": "flat 7.1 layout only; PLIIx signal and Surround EX metadata use separate validators",
         "streams": [],
     }
     for item in config["baseline_streams"]:

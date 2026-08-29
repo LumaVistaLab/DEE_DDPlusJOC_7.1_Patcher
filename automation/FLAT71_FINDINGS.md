@@ -3,8 +3,9 @@
 Date: 2026-08-29
 
 Scope: Blu-ray Dolby Digital Plus with Dolby Atmos (DD+ JOC) flat 7.1 only.
-Dolby Surround EX flag patching is explicitly deferred to a future 5.1 Dolby
-PLIIx phase and is not imported, called, or used by this workflow.
+Dolby Surround EX flag patching was not imported, called, or used by this
+flat-layout workflow. The later, separate PLIIx core result is documented in
+`PLIIX_FINDINGS.md`.
 
 ## Validated patch
 
