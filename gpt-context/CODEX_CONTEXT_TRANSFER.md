@@ -7,6 +7,23 @@ Primary goal: make DD+ Atmos for Blu-ray produce a **flat 7.1 coded/compatibilit
 
 ---
 
+## 2026-08-29 validation addendum — goal reached
+
+This addendum supersedes the older "not yet identified" and "next experiment"
+statements later in this historical handoff.
+
+- Paired P2+P3 (`0x17C0D7` and `0x17C9E8`, both `19 -> 21`) completes the DEE job with exit code 0.
+- Output SHA-256: `cb8b7cad90c722ea41437344be711e83def72af019b731a86bee4786cfb0343c`.
+- MediaInfo: `L R C LFE Ls Rs Lb Rb`, Blu-ray Disc, Dep JOC, Dolby Digital Plus with Dolby Atmos.
+- FFprobe: 8 channels, 7.1, Dolby Digital Plus + Dolby Atmos.
+- The stream contains 8222 AC-3 core frames and 8222 E-AC-3 dependent/JOC frames, with no trailing bytes.
+- P1+P2+P3 is no longer an immediate test target because paired P2+P3 already reaches the goal.
+- Dolby Surround EX integration remains deferred to a later 5.1 Dolby PLIIx phase.
+
+See `automation/FLAT71_FINDINGS.md` and `patch_logs/flat71_P2P3.log` for the current evidence.
+
+---
+
 ## 1. Scope and working assumptions
 
 This project is reverse-engineering DEE v5.2.1's Blu-ray Dolby Digital Plus with Dolby Atmos path.
@@ -847,4 +864,3 @@ not on AtmosProcessor output format and not on the unresolved 19/21 Phoenix conf
 Recommended first task:
 
 > Reverse-engineer `dee_audio_filter_ddp_atmos.dll` downstream of AtmosProcessor and locate the configuration field that controls the final JOC coded/downmix layout (`5.X`, `7.X`, `5.X+2`). Use the known successful P1 and failed P2/P1+P2 experiments as differential evidence. Do not assume numeric config 19/21 maps directly to final channel layout. Trace JOC/OAMD/evolution-payload initialization and the parameter structure passed into the final DD+ JOC encoder. Preserve exact RVAs, file offsets, byte sequences, call graphs, and semantic confidence for every candidate.
-

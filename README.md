@@ -1,4 +1,4 @@
-# DEE_DDPlusJOC_7.1_Patcher
+# DD+ 7.1 Atmos Patcher for DEE
 
 Language: English | [简体中文](README_zh-CN.md)
 
@@ -17,7 +17,7 @@ L R C LFE Ls Rs Tfl Tfr
 This project does not target ordinary channel-based E-AC-3 7.1. The target is specifically a DD+ JOC / Dolby Atmos for Blu-ray bitstream with a flat 7.1 coded layout.
 
 > [!WARNING]
-> This is unfinished experimental work. No available patch has yet produced the target flat 7.1 JOC layout. Do not use the generated DLLs in production, and always preserve the original binary.
+> This remains an experimental patch for one exact DEE 5.2.1 binary build. The paired P2+P3 patch has produced the target flat 7.1 JOC layout, but it is not a general-purpose or production-ready patch. Always preserve the original binary.
 
 ## Current Status
 
@@ -26,13 +26,13 @@ This project does not target ordinary channel-based E-AC-3 7.1. The target is sp
 | P1 | AtmosProcessor render format: `5.1` -> `7.1` | Encoding succeeds, but the final stream remains `7.1 Height` |
 | P2 | One Blu-ray internal configuration site: `19` -> `21` | Encoder pass crashes with an access violation |
 | P1+P2 | P1 plus the single P2 configuration change | Same crash as P2 |
-| P2+P3 | Paired internal configuration sites: `19` -> `21` | Generated, not yet tested |
-| P1+P2+P3 | P1 plus paired P2/P3 changes | Generated, not yet tested |
+| P2+P3 | Paired internal configuration sites: `19` -> `21` | **Success: flat 7.1 DD+ JOC (`L R C LFE Ls Rs Lb Rb`)** |
+| P1+P2+P3 | P1 plus paired P2/P3 changes | Not tested; P2+P3 already reaches the target |
 | P3 only | Opposite single-site diagnostic mismatch | Generated; low-priority diagnostic build |
 
-The successful P1 experiment proves that changing the AtmosProcessor render format alone does not change the final JOC coded layout. The `19` and `21` values are currently believed to belong to an internal Phoenix/spatial-coding configuration layer; there is no proof that `21` means flat 7.1.
+The successful P1 experiment proves that changing the AtmosProcessor render format alone does not change the final JOC coded layout. The later P2+P3 experiment proves that both `19 -> 21` sites must change together: a single-site change creates inconsistent initialization and crashes, while the paired change produces the target flat 7.1 layout.
 
-The primary reverse-engineering target is now the downstream selector that chooses the final JOC coded/downmix layout among conceptual `5.X`, `7.X`, and `5.X+2` configurations.
+Automated static analysis also found a separate `0x0C / 0x0E / 0x10` three-state channel-mode mapping. Because P2+P3 already reaches the target, that candidate was neither modified nor dynamically tested.
 
 ## Requirements
 
@@ -55,7 +55,8 @@ The patch scripts refuse to modify an unsupported binary and verify the expected
 ```text
 DEE_DDPlusJOC_7.1_Patcher/
 |-- patchers/        Patch-generation scripts
-|-- patch_logs/      Preserved P1, P2, and P1+P2 test logs
+|-- automation/      Isolated patch build, reverse, test, and stream-validation scripts
+|-- patch_logs/      Preserved complete test logs
 |-- example-flow/    Example Blu-ray DD+ Atmos job files
 |-- gpt-context/     Reverse-engineering notes and context transfer
 |-- dll_original/    Local original DLL; ignored by Git
@@ -66,7 +67,17 @@ DEE_DDPlusJOC_7.1_Patcher/
 
 Dolby binaries, licenses, and large test media are not part of the source distribution. Supply them from your own authorized installation.
 
-## Generating the P1/P2 Variants
+## Building the validated flat-7.1 patch
+
+From the repository root:
+
+```powershell
+python .\automation\build_flat71_patch.py
+```
+
+This builds only the validated paired P2+P3 variant. It checks the source DLL hash, original bytes at both sites, PE checksum, and final output hash. Existing output is not overwritten by default.
+
+## Generating legacy diagnostic variants
 
 From the repository root, run:
 
@@ -78,7 +89,18 @@ python .\patchers\make_dee_flat71_patches.py `
 
 This creates the P1, P2, and P1+P2 variants after validating the source DLL hash and original instruction bytes.
 
-The newer `make_dee_cfg21_patches_v2.py` script creates the P2+P3, P1+P2+P3, and P3-only diagnostic variants next to the source DLL supplied to it. These builds remain unverified experiments.
+The earlier `make_dee_cfg21_patches_v2.py` script creates P2+P3, P1+P2+P3, and P3-only diagnostic variants next to the supplied DLL. Only paired P2+P3 has been validated with the fixed test source.
+
+## Automated validation
+
+```powershell
+python .\automation\tests\test_automation.py
+python .\automation\validate.py baseline
+python .\automation\run.py preflight flat71_P2P3
+python .\automation\run.py run flat71_P2P3
+```
+
+The automation never edits `example-flow`, never overwrites retained evidence, and preserves every declared output, including zero-byte crash outputs. Dolby Surround EX flag patching is outside the current flat-7.1 phase.
 
 ## Testing Guidance
 
@@ -99,8 +121,11 @@ Never overwrite the DLL's global `"5.1"` string. P1 changes only the two intende
 - The Atmos filter exposes hidden `encoding_backend` and `encoder_mode` parameters; Blu-ray mode uses the AtmosProcessor backend.
 - P1 completes both passes and produces a valid non-zero stream, but the coded layout remains `7.1 Height`.
 - P2 and P1+P2 fail deterministically at the same first-frame access violation after the measurement pass, indicating inconsistent paired initialization rather than a confirmed layout switch.
+- P2+P3 completes both passes with exit code 0; the output SHA-256 is `cb8b7cad90c722ea41437344be711e83def72af019b731a86bee4786cfb0343c`.
+- Its output contains 8,222 2,560-byte AC-3 core frames and 8,222 4,096-byte E-AC-3 dependent/JOC frames with no trailing bytes. MediaInfo reports `L R C LFE Ls Rs Lb Rb`; FFprobe reports eight-channel Dolby Digital Plus + Dolby Atmos.
+- The complete `example-flow` file-hash manifest is unchanged before and after the automated run.
 
-See [CODEX_CONTEXT_TRANSFER.md](gpt-context/CODEX_CONTEXT_TRANSFER.md) for the complete findings, patch offsets, byte sequences, hashes, crash mapping, and recommended next investigation.
+See [CODEX_CONTEXT_TRANSFER.md](gpt-context/CODEX_CONTEXT_TRANSFER.md) for historical research context, [the automated flat-7.1 findings](automation/FLAT71_FINDINGS.md) for the successful result, and [the complete P2+P3 log](patch_logs/flat71_P2P3.log).
 
 ## Legal Notice
 

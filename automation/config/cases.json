@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "scope": "DD+ JOC flat 7.1 only; Dolby Surround EX flag patching is explicitly out of scope",
+  "expected_original_sha256": "3d66bcec36031fd48e6565d15f05fea656642377ca4f8c98cdce1cce8b7e95d2",
+  "paths": {
+    "original_dll": "dll_original/dee_audio_filter_ddp_atmos.dll",
+    "runtime_source": "dee_copy",
+    "runtime_target_dll": "dee_audio_filter_ddp_atmos.dll",
+    "runtime_exe": "dee.exe",
+    "workflow_xml": "example-flow/atmos_mezz_encode_to_atmos_ddp_ec3.xml",
+    "input_audio": "example-flow/sollevante_lp_v01_DAMF_Nearfield_48k_24b_24.wav",
+    "temp_dir": "X:/DolbyEncodingEngineTemp",
+    "results_dir": "results",
+    "logs_dir": "patch_logs",
+    "work_dir": "automation/work",
+    "evidence_dir": "automation/evidence"
+  },
+  "layout_goal": {
+    "channels": ["L", "R", "C", "LFE", "Ls", "Rs", "Lrs", "Rrs"],
+    "accepted_rear_aliases": [["Lrs", "Rrs"], ["Lb", "Rb"]],
+    "rejected_height_channels": ["Tfl", "Tfr"]
+  },
+  "baseline_streams": [
+    {
+      "id": "existing_flat71_P1",
+      "path": "results/flat71_P1.eb3",
+      "role": "known successful DEE P1 output; expected to remain 7.1 Height"
+    },
+    {
+      "id": "dmps_flat71_reference",
+      "path": "DolbySurrEX-flag-patcher-c0a8978/Sol Levante.eb3",
+      "role": "layout-only reference stream; no Surround EX patching or flag integration"
+    }
+  ],
+  "reverse_targets": [
+    "Spatial Coding encode process",
+    "Spatial Coding to OAMDI conversion",
+    "Encoding of evolution payload",
+    "DD+ JOC encode",
+    "Missing or invalid JOC payload for output frame",
+    "Missing or invalid OAMD payload for output frame",
+    "spatial coding",
+    "evolution payload",
+    "JOC",
+    "OAMD",
+    "downmix configuration",
+    "channel configuration"
+  ],
+  "known_patch_sites": [
+    {"name": "P1a", "file_offset": 1546476, "size": 7},
+    {"name": "P1b", "file_offset": 1551578, "size": 7},
+    {"name": "P3", "file_offset": 1556695, "size": 5},
+    {"name": "P2", "file_offset": 1559016, "size": 5}
+  ],
+  "cases": [
+    {
+      "id": "flat71_P2P3",
+      "candidate_dll": "dll_patched/dee_audio_filter_ddp_atmos_cfg21_P2P3.dll",
+      "expected_sha256": "fd49c7b9b19bba5f7ec0b862a9811a7b822b2efe200bc82a033fb9b7f54c1588",
+      "output_name": "flat71_P2P3.eb3",
+      "log_name": "flat71_P2P3.log",
+      "gated": false
+    },
+    {
+      "id": "flat71_P1P2P3",
+      "candidate_dll": "dll_patched/dee_audio_filter_ddp_atmos_cfg21_P1P2P3.dll",
+      "expected_sha256": "82fef3a4f9683cde7d51dd42ee755c92c60f9be829960694edc1746b71af2b05",
+      "output_name": "flat71_P1P2P3.eb3",
+      "log_name": "flat71_P1P2P3.log",
+      "gated": true,
+      "gate_reason": "Run only after the P2+P3 result has been reviewed."
+    }
+  ]
+}
+

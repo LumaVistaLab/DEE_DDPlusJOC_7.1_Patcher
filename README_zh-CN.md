@@ -1,4 +1,4 @@
-# DEE_DDPlusJOC_7.1_Patcher
+# DD+ 7.1 Atmos Patcher for DEE
 
 语言：简体中文 | [English](README.md)
 
@@ -17,7 +17,7 @@ L R C LFE Ls Rs Tfl Tfr
 本项目的目标不是普通的基于声道的 E-AC-3 7.1，而是具有平面 7.1 编码布局的蓝光 DD+ JOC / Dolby Atmos 码流。
 
 > [!WARNING]
-> 本项目仍处于未完成的实验阶段。目前没有任何补丁成功生成目标平面 7.1 JOC 布局。请勿将生成的 DLL 用于生产环境，并务必保留原始二进制文件。
+> 本项目仍属于针对单一 DEE 5.2.1 二进制版本的实验性补丁。配对的 P2+P3 补丁已成功生成目标平面 7.1 JOC 布局，但尚不应视为通用或生产级补丁。请务必保留原始二进制文件。
 
 ## 当前状态
 
@@ -26,13 +26,13 @@ L R C LFE Ls Rs Tfl Tfr
 | P1 | AtmosProcessor 渲染格式：`5.1` -> `7.1` | 编码成功，但最终码流仍为 `7.1 Height` |
 | P2 | 单个蓝光内部配置位置：`19` -> `21` | 编码阶段发生访问冲突并崩溃 |
 | P1+P2 | P1 加单位置 P2 配置修改 | 与 P2 相同的崩溃 |
-| P2+P3 | 两个配对内部配置位置：`19` -> `21` | 已生成，尚未测试 |
-| P1+P2+P3 | P1 加配对的 P2/P3 修改 | 已生成，尚未测试 |
+| P2+P3 | 两个配对内部配置位置：`19` -> `21` | **成功：生成平面 7.1 DD+ JOC（`L R C LFE Ls Rs Lb Rb`）** |
+| P1+P2+P3 | P1 加配对的 P2/P3 修改 | 未测试；P2+P3 已达到目标，当前无需测试 |
 | 仅 P3 | 方向相反的单位置不匹配诊断 | 已生成；低优先级诊断版本 |
 
-成功的 P1 实验证明：仅修改 AtmosProcessor 渲染格式不会改变最终 JOC 编码布局。目前认为数值 `19` 和 `21` 属于内部 Phoenix/空间编码配置层；没有证据表明 `21` 就代表平面 7.1。
+成功的 P1 实验证明：仅修改 AtmosProcessor 渲染格式不会改变最终 JOC 编码布局。后续 P2+P3 实验则证明，两个 `19 -> 21` 位置必须同步修改；单点修改造成不一致初始化和崩溃，配对修改会产生目标平面 7.1 布局。
 
-当前首要逆向目标是位于下游、负责在概念上的 `5.X`、`7.X` 和 `5.X+2` 配置之间选择最终 JOC 编码/下混布局的选择器。
+自动静态分析还找到了一个独立的 `0x0C / 0x0E / 0x10` 三态 channel-mode 映射，但由于 P2+P3 已达到目标，该候选未被修改或动态测试。
 
 ## 环境要求
 
@@ -55,7 +55,8 @@ L R C LFE Ls Rs Tfl Tfr
 ```text
 DEE_DDPlusJOC_7.1_Patcher/
 |-- patchers/        补丁生成脚本
-|-- patch_logs/      保留的 P1、P2 和 P1+P2 测试日志
+|-- automation/      隔离的补丁构建、逆向、测试和码流验证脚本
+|-- patch_logs/      保留的完整测试日志
 |-- example-flow/    蓝光 DD+ Atmos 示例作业文件
 |-- gpt-context/     逆向工程笔记与上下文交接文档
 |-- dll_original/    本地原始 DLL；由 Git 忽略
@@ -66,7 +67,17 @@ DEE_DDPlusJOC_7.1_Patcher/
 
 源码分发不包含 Dolby 二进制文件、许可证和大型测试媒体。请从您自己获得授权的安装中提供这些文件。
 
-## 生成 P1/P2 变体
+## 生成已验证的平面 7.1 补丁
+
+在仓库根目录运行：
+
+```powershell
+python .\automation\build_flat71_patch.py
+```
+
+脚本只生成已验证的配对 P2+P3 版本；它会校验源 DLL 哈希、两个位置的原始字节、PE 校验和以及最终输出哈希。已存在的输出默认不会被覆盖。
+
+## 生成旧诊断变体
 
 在仓库根目录运行：
 
@@ -78,7 +89,18 @@ python .\patchers\make_dee_flat71_patches.py `
 
 脚本会先校验源 DLL 的哈希和原始指令字节，然后生成 P1、P2 和 P1+P2 变体。
 
-较新的 `make_dee_cfg21_patches_v2.py` 会在传入的源 DLL 所在目录生成 P2+P3、P1+P2+P3 和仅 P3 的诊断变体。这些版本仍是未经验证的实验候选。
+较早的 `make_dee_cfg21_patches_v2.py` 会在传入的源 DLL 所在目录生成 P2+P3、P1+P2+P3 和仅 P3 的诊断变体。其中只有配对 P2+P3 已在当前固定测试源上验证。
+
+## 自动化验证
+
+```powershell
+python .\automation\tests\test_automation.py
+python .\automation\validate.py baseline
+python .\automation\run.py preflight flat71_P2P3
+python .\automation\run.py run flat71_P2P3
+```
+
+自动化流程不修改 `example-flow`，不覆盖既有证据，并会保留所有声明的输出，包括崩溃产生的 0 字节文件。Dolby Surround EX 标志补丁不属于当前平面 7.1 阶段。
 
 ## 测试建议
 
@@ -99,8 +121,11 @@ python .\patchers\make_dee_flat71_patches.py `
 - Atmos 滤镜提供隐藏的 `encoding_backend` 和 `encoder_mode` 参数；蓝光模式使用 AtmosProcessor 后端。
 - P1 能完成两个编码阶段并产生有效的非零码流，但编码布局仍为 `7.1 Height`。
 - P2 和 P1+P2 均在测量阶段完成后，以相同的首帧访问冲突确定性失败。这表明发生的是配对初始化不一致，而不是已确认的布局切换。
+- P2+P3 完成测量和编码阶段，退出码为 0；输出 SHA-256 为 `cb8b7cad90c722ea41437344be711e83def72af019b731a86bee4786cfb0343c`。
+- P2+P3 输出包含 8222 个 2560 字节 AC-3 核心帧和 8222 个 4096 字节 E-AC-3 dependent/JOC 帧，无尾随字节。MediaInfo 报告 `L R C LFE Ls Rs Lb Rb`，FFprobe 报告 8 声道 Dolby Digital Plus + Dolby Atmos。
+- 自动化运行前后 `example-flow` 的完整文件哈希清单一致。
 
-完整研究结论、补丁偏移、字节序列、哈希、崩溃地址映射和后续调查建议见 [CODEX_CONTEXT_TRANSFER.md](gpt-context/CODEX_CONTEXT_TRANSFER.md)。
+完整历史研究结论见 [CODEX_CONTEXT_TRANSFER.md](gpt-context/CODEX_CONTEXT_TRANSFER.md)；本次成功结果见 [自动化平面 7.1 结论](automation/FLAT71_FINDINGS.md) 和 [P2+P3 完整日志](patch_logs/flat71_P2P3.log)。
 
 ## 法律声明
 

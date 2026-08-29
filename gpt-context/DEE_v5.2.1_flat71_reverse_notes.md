@@ -3,6 +3,15 @@
 Target binary SHA-256:
 `3d66bcec36031fd48e6565d15f05fea656642377ca4f8c98cdce1cce8b7e95d2  dee_audio_filter_ddp_atmos.dll`
 
+## Validated result addendum
+
+Paired P2+P3 is now validated. Synchronizing both `19 -> 21` sites produces a
+complete Blu-ray DD+ JOC stream whose MediaInfo layout is
+`L R C LFE Ls Rs Lb Rb`; the job exits with code 0. The output SHA-256 is
+`cb8b7cad90c722ea41437344be711e83def72af019b731a86bee4786cfb0343c`.
+See `automation/FLAT71_FINDINGS.md` for the complete automated evidence. Older
+statements below describing P2+P3 as untested are retained as historical notes.
+
 ## P1 — AtmosProcessor output format 5.1 -> 7.1
 
 The DLL contains an output-format parser with:
