@@ -2,7 +2,7 @@
 
 Language: English | [简体中文](README_zh-CN.md)
 
-An experimental binary-patching and reverse-engineering project for Dolby Encoding Engine (DEE) 5.2.1. Its goal is to determine whether Blu-ray Dolby Digital Plus with Dolby Atmos (DD+ JOC) can use a flat 7.1 coded/compatibility layout:
+A validated binary-patch implementation and reverse-engineering project for Dolby Encoding Engine (DEE) 5.2.1. The paired P2+P3 implementation makes Blu-ray Dolby Digital Plus with Dolby Atmos (DD+ JOC) use this flat 7.1 coded/compatibility layout:
 
 ```text
 L R C LFE Ls Rs Lrs Rrs
@@ -17,22 +17,38 @@ L R C LFE Ls Rs Tfl Tfr
 This project does not target ordinary channel-based E-AC-3 7.1. The target is specifically a DD+ JOC / Dolby Atmos for Blu-ray bitstream with a flat 7.1 coded layout.
 
 > [!WARNING]
-> This remains an experimental patch for one exact DEE 5.2.1 binary build. The paired P2+P3 patch has produced the target flat 7.1 JOC layout, but it is not a general-purpose or production-ready patch. Always preserve the original binary.
+> This patch implementation is validated for one exact DEE 5.2.1 binary build and the encoding/decoding paths documented below. It is not claimed to be a general-purpose or production-ready patch. Always preserve the original binary.
 
-## Current Status
+## Validated Implementation Status
 
 | Variant | Change | Result |
 | --- | --- | --- |
 | P1 | AtmosProcessor render format: `5.1` -> `7.1` | Encoding succeeds, but the final stream remains `7.1 Height` |
 | P2 | One Blu-ray internal configuration site: `19` -> `21` | Encoder pass crashes with an access violation |
 | P1+P2 | P1 plus the single P2 configuration change | Same crash as P2 |
-| P2+P3 | Paired internal configuration sites: `19` -> `21` | **Success: flat 7.1 DD+ JOC (`L R C LFE Ls Rs Lb Rb`)** |
+| P2+P3 | Paired internal configuration sites: `19` -> `21` | **Validated implementation: flat 7.1 DD+ JOC (`L R C LFE Ls Rs Lb Rb`)** |
 | P1+P2+P3 | P1 plus paired P2/P3 changes | Not tested; P2+P3 already reaches the target |
 | P3 only | Opposite single-site diagnostic mismatch | Generated; low-priority diagnostic build |
 
 The successful P1 experiment proves that changing the AtmosProcessor render format alone does not change the final JOC coded layout. The later P2+P3 experiment proves that both `19 -> 21` sites must change together: a single-site change creates inconsistent initialization and crashes, while the paired change produces the target flat 7.1 layout.
 
 Automated static analysis also found a separate `0x0C / 0x0E / 0x10` three-state channel-mode mapping. Because P2+P3 already reaches the target, that candidate was neither modified nor dynamically tested.
+
+## Playback Validation
+
+The validated P2+P3 implementation was encoded with the automation-generated
+40-second 9.1.6 channel-identification master. The resulting test stream was
+`atmos916_flat71_P2P3_r03.eb3`, SHA-256
+`de0536e1ec495404e5d1a91b82569c1e5ab1ccb8cb50fa2f4de631208906d354`.
+
+| Validation path | Decoder | Result |
+| --- | --- | --- |
+| Flat 7.1 compatibility presentation and coded-channel rendering | LAV Audio Decoder 0.82.0 | **Passed:** the encoded 7.1 channels render in the intended `L R C LFE Ls Rs Lb Rb` arrangement |
+| Dolby Atmos presentation and spatial rendering | Dolby Media Decoder v3.2.0 | **Passed:** the 9.1.6 test positions render correctly in the Dolby Atmos presentation |
+
+These playback results complete both intended validations: the flat 7.1 coded
+compatibility layer and the Dolby Atmos spatial presentation. The scope remains
+the exact DEE build, patch, test stream, and decoder versions stated here.
 
 ## Requirements
 
@@ -60,7 +76,7 @@ DEE_DDPlusJOC_7.1_Patcher/
 |-- example-flow/    Example Blu-ray DD+ Atmos job files
 |-- gpt-context/     Reverse-engineering notes and context transfer
 |-- dll_original/    Local original DLL; ignored by Git
-|-- dll_patched/     Locally generated experimental DLLs; ignored by Git
+|-- dll_patched/     Locally generated patched DLLs; ignored by Git
 |-- dee_copy/        Local DEE runtime copy; ignored by Git
 `-- results/         Local encoded test outputs
 ```
@@ -123,9 +139,11 @@ Never overwrite the DLL's global `"5.1"` string. P1 changes only the two intende
 - P2 and P1+P2 fail deterministically at the same first-frame access violation after the measurement pass, indicating inconsistent paired initialization rather than a confirmed layout switch.
 - P2+P3 completes both passes with exit code 0; the output SHA-256 is `cb8b7cad90c722ea41437344be711e83def72af019b731a86bee4786cfb0343c`.
 - Its output contains 8,222 2,560-byte AC-3 core frames and 8,222 4,096-byte E-AC-3 dependent/JOC frames with no trailing bytes. MediaInfo reports `L R C LFE Ls Rs Lb Rb`; FFprobe reports eight-channel Dolby Digital Plus + Dolby Atmos.
+- LAV Audio Decoder 0.82.0 playback verifies correct flat 7.1 compatibility-presentation coded-channel rendering.
+- Dolby Media Decoder v3.2.0 playback verifies correct Dolby Atmos spatial rendering of the 9.1.6 channel-identification stream.
 - The complete `example-flow` file-hash manifest is unchanged before and after the automated run.
 
-See [CODEX_CONTEXT_TRANSFER.md](gpt-context/CODEX_CONTEXT_TRANSFER.md) for historical research context, [the automated flat-7.1 findings](automation/FLAT71_FINDINGS.md) for the successful result, and [the complete P2+P3 log](patch_logs/flat71_P2P3.log).
+See [CODEX_CONTEXT_TRANSFER.md](gpt-context/CODEX_CONTEXT_TRANSFER.md) for historical research context, [the automated flat-7.1 findings](automation/FLAT71_FINDINGS.md) for the validated implementation result, and [the complete P2+P3 log](patch_logs/flat71_P2P3.log).
 
 ## Legal Notice
 

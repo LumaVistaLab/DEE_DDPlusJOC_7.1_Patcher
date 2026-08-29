@@ -24,6 +24,12 @@ from build_flat71_patch import (  # noqa: E402
 )
 from run import capture_process  # noqa: E402
 from stream_validation import scan_frames  # noqa: E402
+from generate_916_test_master import (  # noqa: E402
+    TRACKS,
+    build_axml,
+    build_chna,
+    read_riff_chunks,
+)
 
 
 class AutomationTests(unittest.TestCase):
@@ -46,6 +52,24 @@ class AutomationTests(unittest.TestCase):
         self.assertEqual(config["cases"][0]["id"], "flat71_P2P3")
         self.assertFalse(config["cases"][0]["gated"])
         self.assertTrue(config["cases"][1]["gated"])
+        self.assertEqual(config["cases"][2]["id"], "atmos916_flat71_P2P3")
+        self.assertFalse(config["cases"][2]["gated"])
+        self.assertIn("automation/work/test_audio", config["cases"][2]["input_audio"])
+        self.assertEqual(len(config["cases"][2]["expected_input_sha256"]), 64)
+
+    def test_916_adm_rewrite_has_16_matching_tracks(self) -> None:
+        template = AUTOMATION_DIR.parent / "example-flow" / "sollevante_lp_v01_DAMF_Nearfield_48k_24b_24.wav"
+        source = read_riff_chunks(template, {b"axml", b"chna"})
+        axml = build_axml(source[b"axml"])
+        chna = build_chna(source[b"chna"])
+        self.assertEqual(len(TRACKS), 16)
+        self.assertEqual(len({track["label"] for track in TRACKS}), 16)
+        self.assertEqual(len([track for track in TRACKS if track["kind"] == "bed"]), 10)
+        self.assertEqual(len([track for track in TRACKS if track["kind"] == "object"]), 6)
+        self.assertEqual(int.from_bytes(chna[0:2], "little"), 16)
+        self.assertEqual(int.from_bytes(chna[2:4], "little"), 16)
+        self.assertIn(b"Atmos_9.1.6_Channel_ID", axml)
+        self.assertEqual(axml.count(b"<audioTrackUID "), 16)
 
     def test_paths_never_overwrite_and_reruns_are_numbered(self) -> None:
         output = self.temp / "case.eb3"

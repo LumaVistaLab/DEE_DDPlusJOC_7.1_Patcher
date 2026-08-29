@@ -69,7 +69,17 @@
       "log_name": "flat71_P1P2P3.log",
       "gated": true,
       "gate_reason": "Run only after the P2+P3 result has been reviewed."
+    },
+    {
+      "id": "atmos916_flat71_P2P3",
+      "candidate_dll": "dll_patched/dee_audio_filter_ddp_atmos_cfg21_P2P3.dll",
+      "expected_sha256": "fd49c7b9b19bba5f7ec0b862a9811a7b822b2efe200bc82a033fb9b7f54c1588",
+      "input_audio": "automation/work/test_audio/atmos_916_channel_id_adm.wav",
+      "expected_input_sha256": "bf67c22de5ea8b1c9ea776945f3e2bab46bf6356753f908dfd7942e8f751ad83",
+      "output_name": "atmos916_flat71_P2P3.eb3",
+      "log_name": "atmos916_flat71_P2P3.log",
+      "purpose": "9.1.6 channel identification through the validated flat-7.1 DD+ JOC patch",
+      "gated": false
     }
   ]
 }
-

@@ -2,7 +2,7 @@
 
 语言：简体中文 | [English](README.md)
 
-这是一个面向 Dolby Encoding Engine（DEE）5.2.1 的实验性二进制补丁与逆向工程项目，目标是确认蓝光 Dolby Digital Plus with Dolby Atmos（DD+ JOC）能否使用以下平面 7.1 编码/兼容层布局：
+这是一个面向 Dolby Encoding Engine（DEE）5.2.1 的已验证二进制补丁实现与逆向工程项目。配对的 P2+P3 补丁实现可使蓝光 Dolby Digital Plus with Dolby Atmos（DD+ JOC）采用以下平面 7.1 编码/兼容层布局：
 
 ```text
 L R C LFE Ls Rs Lrs Rrs
@@ -17,22 +17,38 @@ L R C LFE Ls Rs Tfl Tfr
 本项目的目标不是普通的基于声道的 E-AC-3 7.1，而是具有平面 7.1 编码布局的蓝光 DD+ JOC / Dolby Atmos 码流。
 
 > [!WARNING]
-> 本项目仍属于针对单一 DEE 5.2.1 二进制版本的实验性补丁。配对的 P2+P3 补丁已成功生成目标平面 7.1 JOC 布局，但尚不应视为通用或生产级补丁。请务必保留原始二进制文件。
+> 本补丁实现已在下文所列的特定 DEE 5.2.1 二进制版本及编码/解码链路上完成验证，但不宣称具备通用或生产级兼容性。请务必保留原始二进制文件。
 
-## 当前状态
+## 已验证的实现状态
 
 | 变体 | 修改 | 结果 |
 | --- | --- | --- |
 | P1 | AtmosProcessor 渲染格式：`5.1` -> `7.1` | 编码成功，但最终码流仍为 `7.1 Height` |
 | P2 | 单个蓝光内部配置位置：`19` -> `21` | 编码阶段发生访问冲突并崩溃 |
 | P1+P2 | P1 加单位置 P2 配置修改 | 与 P2 相同的崩溃 |
-| P2+P3 | 两个配对内部配置位置：`19` -> `21` | **成功：生成平面 7.1 DD+ JOC（`L R C LFE Ls Rs Lb Rb`）** |
+| P2+P3 | 两个配对内部配置位置：`19` -> `21` | **已验证的补丁实现：生成平面 7.1 DD+ JOC（`L R C LFE Ls Rs Lb Rb`）** |
 | P1+P2+P3 | P1 加配对的 P2/P3 修改 | 未测试；P2+P3 已达到目标，当前无需测试 |
 | 仅 P3 | 方向相反的单位置不匹配诊断 | 已生成；低优先级诊断版本 |
 
 成功的 P1 实验证明：仅修改 AtmosProcessor 渲染格式不会改变最终 JOC 编码布局。后续 P2+P3 实验则证明，两个 `19 -> 21` 位置必须同步修改；单点修改造成不一致初始化和崩溃，配对修改会产生目标平面 7.1 布局。
 
 自动静态分析还找到了一个独立的 `0x0C / 0x0E / 0x10` 三态 channel-mode 映射，但由于 P2+P3 已达到目标，该候选未被修改或动态测试。
+
+## 播放解码验证
+
+已验证的 P2+P3 补丁实现使用 automation 生成的 40 秒 9.1.6 声道识别
+主文件完成编码。最终测试码流为 `atmos916_flat71_P2P3_r03.eb3`，其
+SHA-256 为
+`de0536e1ec495404e5d1a91b82569c1e5ab1ccb8cb50fa2f4de631208906d354`。
+
+| 验证路径 | 解码器 | 结论 |
+| --- | --- | --- |
+| 平面 7.1 兼容呈现及编码声道渲染 | LAV Audio Decoder 0.82.0 | **通过：** 编码的 7.1 声道按预期的 `L R C LFE Ls Rs Lb Rb` 布局正确呈现 |
+| Dolby Atmos 呈现及空间渲染 | Dolby Media Decoder v3.2.0 | **通过：** 9.1.6 测试位置在 Dolby Atmos 呈现中正确完成空间解码 |
+
+上述播放结果完成了本项目预定的两项验证：平面 7.1 编码兼容层和
+Dolby Atmos 空间呈现。结论范围仍限定于此处明确记录的 DEE 二进制版本、
+补丁、测试码流及解码器版本。
 
 ## 环境要求
 
@@ -60,7 +76,7 @@ DEE_DDPlusJOC_7.1_Patcher/
 |-- example-flow/    蓝光 DD+ Atmos 示例作业文件
 |-- gpt-context/     逆向工程笔记与上下文交接文档
 |-- dll_original/    本地原始 DLL；由 Git 忽略
-|-- dll_patched/     本地生成的实验性 DLL；由 Git 忽略
+|-- dll_patched/     本地生成的补丁 DLL；由 Git 忽略
 |-- dee_copy/        本地 DEE 运行时副本；由 Git 忽略
 `-- results/         本地编码测试输出
 ```
@@ -123,9 +139,11 @@ python .\automation\run.py run flat71_P2P3
 - P2 和 P1+P2 均在测量阶段完成后，以相同的首帧访问冲突确定性失败。这表明发生的是配对初始化不一致，而不是已确认的布局切换。
 - P2+P3 完成测量和编码阶段，退出码为 0；输出 SHA-256 为 `cb8b7cad90c722ea41437344be711e83def72af019b731a86bee4786cfb0343c`。
 - P2+P3 输出包含 8222 个 2560 字节 AC-3 核心帧和 8222 个 4096 字节 E-AC-3 dependent/JOC 帧，无尾随字节。MediaInfo 报告 `L R C LFE Ls Rs Lb Rb`，FFprobe 报告 8 声道 Dolby Digital Plus + Dolby Atmos。
+- 使用 LAV Audio Decoder 0.82.0 播放验证了平面 7.1 兼容呈现编码声道渲染正确。
+- 使用 Dolby Media Decoder v3.2.0 播放验证了 9.1.6 声道识别码流的 Dolby Atmos 空间呈现解码正确。
 - 自动化运行前后 `example-flow` 的完整文件哈希清单一致。
 
-完整历史研究结论见 [CODEX_CONTEXT_TRANSFER.md](gpt-context/CODEX_CONTEXT_TRANSFER.md)；本次成功结果见 [自动化平面 7.1 结论](automation/FLAT71_FINDINGS.md) 和 [P2+P3 完整日志](patch_logs/flat71_P2P3.log)。
+完整历史研究结论见 [CODEX_CONTEXT_TRANSFER.md](gpt-context/CODEX_CONTEXT_TRANSFER.md)；已验证的补丁实现结果见 [自动化平面 7.1 结论](automation/FLAT71_FINDINGS.md) 和 [P2+P3 完整日志](patch_logs/flat71_P2P3.log)。
 
 ## 法律声明
 

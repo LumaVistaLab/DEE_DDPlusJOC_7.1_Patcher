@@ -28,6 +28,11 @@ from common import (
 from stream_validation import validate_stream
 
 
+def _case_repo_path(config: dict[str, Any], case: dict[str, Any], key: str, *, must_exist: bool) -> Path:
+    value = case.get(key, config["paths"][key])
+    return repo_path(value, must_exist=must_exist)
+
+
 def _runtime_state(source: Path) -> tuple[str, list[dict[str, Any]]]:
     records: list[dict[str, Any]] = []
     for path in sorted((item for item in source.rglob("*") if item.is_file()), key=lambda p: p.as_posix().lower()):
@@ -87,8 +92,8 @@ def preflight(config: dict[str, Any], case: dict[str, Any], *, allow_gated: bool
     paths = config["paths"]
     original = repo_path(paths["original_dll"], must_exist=True)
     candidate = repo_path(case["candidate_dll"], must_exist=True)
-    workflow = repo_path(paths["workflow_xml"], must_exist=True)
-    input_audio = repo_path(paths["input_audio"], must_exist=True)
+    workflow = _case_repo_path(config, case, "workflow_xml", must_exist=True)
+    input_audio = _case_repo_path(config, case, "input_audio", must_exist=True)
     runtime_source = repo_path(paths["runtime_source"], must_exist=True)
     temp_dir = Path(paths["temp_dir"])
 
@@ -101,6 +106,13 @@ def preflight(config: dict[str, Any], case: dict[str, Any], *, allow_gated: bool
     if candidate_hash != case["expected_sha256"]:
         raise RuntimeError(
             f"candidate hash mismatch for {case['id']}: expected {case['expected_sha256']}, got {candidate_hash}"
+        )
+    input_record = file_record(input_audio)
+    expected_input_hash = case.get("expected_input_sha256")
+    if expected_input_hash and input_record["sha256"] != expected_input_hash:
+        raise RuntimeError(
+            f"input hash mismatch for {case['id']}: expected {expected_input_hash}, "
+            f"got {input_record['sha256']}"
         )
     if case.get("gated") and not allow_gated:
         raise PermissionError(case.get("gate_reason", f"case {case['id']} is gated"))
@@ -116,7 +128,7 @@ def preflight(config: dict[str, Any], case: dict[str, Any], *, allow_gated: bool
         "original_dll": file_record(original),
         "candidate_dll": file_record(candidate),
         "workflow_xml": file_record(workflow),
-        "input_audio": file_record(input_audio),
+        "input_audio": input_record,
         "runtime_source": str(runtime_source),
         "temp_dir": str(temp_dir),
         "temp_dir_exists": True,
@@ -231,8 +243,8 @@ def run_case(
         runtime_exe, runtime_report = prepare_runtime(config, candidate)
         run_cwd = repo_path(config["paths"]["work_dir"]) / "runs" / f"{case['id']}{suffix}"
         run_cwd.mkdir(parents=True, exist_ok=False)
-        workflow = repo_path(config["paths"]["workflow_xml"], must_exist=True)
-        input_audio = repo_path(config["paths"]["input_audio"], must_exist=True)
+        workflow = _case_repo_path(config, case, "workflow_xml", must_exist=True)
+        input_audio = _case_repo_path(config, case, "input_audio", must_exist=True)
         command = [
             str(runtime_exe),
             "-x", str(workflow),
