@@ -1,0 +1,4 @@
+backups/
+work/
+__pycache__/
+*.pyc

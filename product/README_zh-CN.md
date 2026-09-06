@@ -1,0 +1,218 @@
+# DD+ 7.1 Atmos Wrapper for Dolby Encoding Engine
+
+[English](README.md) | 简体中文
+
+文件名：`dee-ddp71-atmos-wrapper.py`
+
+这是一个面向 Dolby Encoding Engine（DEE）v5.2.1 的单命令 CLI 封装器。它将本仓库已经验证的逆向工程成果转化为完整工作流，用于编码现代 Blu-ray Dolby Digital Plus with Dolby Atmos，并让用户选择以下兼容呈现编码声道：
+
+- `5.1+2` / `7.1 Height`：`L R C LFE Ls Rs Lvh Rvh`（码流分析工具也可能显示 `Tfl Tfr`）。
+- 平面 `7.1`：`L R C LFE Ls Rs Lrs Rrs`（码流分析工具也可能显示 `Lb Rb`）。
+
+本产品不直接改写成品码流的编码声道标签，不依赖 Dolby Media Producer Suite v2.0 旧版制作流程，也不要求为了平面 7.1 另行制作一种特殊 ADM BWF。输入仍须是 DEE 原版 `atmos_mezz_encode_to_atmos_ddp_ec3.xml` 工作流可接受的合法 Dolby Atmos mezzanine。
+
+> 当前版本是开发版本，只支持经过验证的 `dee_audio_filter_ddp_atmos.dll` 精确构建。原始文件 SHA-256 必须为 `3d66bcec36031fd48e6565d15f05fea656642377ca4f8c98cdce1cce8b7e95d2`。
+
+## 要求
+
+- Windows、Python 3.10 或更高版本。
+- 合法取得并已授权的 Dolby Encoding Engine v5.2.1 完整安装。
+- DEE 目录中存在 `dee.exe`、`dee_audio_filter_ddp_atmos.dll` 及有效许可证。
+- 合法 Dolby Atmos mezzanine 输入。
+
+本项目不分发 Dolby 专有二进制文件、许可证或测试媒体。
+
+## 单命令用法
+
+本版本没有需要逐步执行的子命令。一个命令按照“DEE 路径、输入路径、输出路径、可选覆盖参数”的固定顺序完成备份、生成作业、必要的二进制补丁、编码、必要的 EX 标志处理和还原：
+
+```powershell
+python .\dee-ddp71-atmos-wrapper.py <DEE路径或dee.exe> <输入> <输出> [覆盖参数]
+```
+
+查看内置帮助：
+
+```powershell
+python .\dee-ddp71-atmos-wrapper.py --help
+```
+
+最简 5.1+2 编码：
+
+```powershell
+python .\dee-ddp71-atmos-wrapper.py `
+  "C:\Program Files\Dolby\Dolby Encoding Engine" `
+  "D:\masters\feature.atmos" `
+  "D:\encodes\feature.eb3"
+```
+
+平面 7.1 编码：
+
+```powershell
+python .\dee-ddp71-atmos-wrapper.py `
+  "C:\Program Files\Dolby\Dolby Encoding Engine\dee.exe" `
+  "D:\masters\feature.wav" `
+  "D:\encodes\feature-flat71.eb3" `
+  --compatibility-layout flat-7.1
+```
+
+自定义 Dialnorm 和码率：
+
+```powershell
+python .\dee-ddp71-atmos-wrapper.py `
+  "C:\DEE-5.2.1" "D:\masters\feature.wav" "D:\encodes\feature.eb3" `
+  --custom-dialnorm -27 `
+  --data-rate 1664
+```
+
+只执行前置校验、备份并生成 XML，不修改 DEE、也不编码：
+
+```powershell
+python .\dee-ddp71-atmos-wrapper.py `
+  "C:\DEE-5.2.1" "D:\masters\feature.wav" "D:\encodes\feature.eb3" `
+  --compatibility-layout flat-7.1 `
+  --dry-run
+```
+
+## 固定行为与默认覆盖
+
+- `<encoding_backend>atmosprocessor</encoding_backend>` 固定，不提供覆盖入口。
+- `<encoder_mode>bluray</encoder_mode>` 固定，不提供覆盖入口。
+- `<data_rate>` 的封装器默认值为 `1152`，可由用户覆盖。
+- 选择 `flat-7.1` 时，`<preferred_downmix_mode>` 的封装器默认值为 `ltrt`，可继续覆盖为 `loro`。
+- 选择 `5.1+2` 时，未覆盖的 `<preferred_downmix_mode>` 复用原版模板的 `loro`。
+- 除以上规则外，未提供的参数都复用随产品保存的原版 `atmos_mezz_encode_to_atmos_ddp_ec3.xml` 参数值。
+
+## 第一类：原版 XML 参数覆盖
+
+以下参数按原版 XML 顺序列出。所有项目都是可选覆盖。
+
+| CLI 参数 | XML 参数 | 允许输入 | 原版值/封装器行为 |
+| --- | --- | --- | --- |
+| `--input-timecode-frame-rate` | 输入 `<timecode_frame_rate>` | `not_indicated`, `23.976`, `24`, `25`, `29.97`, `30`, `48`, `50`, `59.94`, `60` | `not_indicated` |
+| `--input-offset` | `<offset>` | `auto`、`HH:MM:SS:FF`、`HH:MM:SS.xx` 或十进制秒 | `auto` |
+| `--input-ffoa` | `<ffoa>` | `auto`、`HH:MM:SS:FF`、`HH:MM:SS.xx` 或十进制秒 | `auto` |
+| `--metering-mode` | `<metering_mode>` | `1770-4`, `1770-3`, `1770-2`, `1770-1`, `LeqA` | `1770-4` |
+| `--dialogue-intelligence` | `<dialogue_intelligence>` | `true`, `false` | `true` |
+| `--speech-threshold` | `<speech_threshold>` | 整数 `0` 至 `100` | `15` |
+| `--data-rate` | `<data_rate>` | `1152`, `1280`, `1408`, `1512`, `1536`, `1664` | 封装器默认 `1152` |
+| `--timecode-frame-rate` | 滤镜 `<timecode_frame_rate>` | `not_indicated`, `23.976`, `24`, `25`, `29.97`, `30`, `48`, `50`, `59.94`, `60` | `not_indicated` |
+| `--start` | `<start>` | `first_frame_of_action`、时间码、十进制秒或视频帧编号 | `first_frame_of_action`；不能与分段批量模式并用 |
+| `--end` | `<end>` | `end_of_file`、时间码、十进制秒或视频帧编号 | `end_of_file`；不能与分段批量模式并用 |
+| `--time-base` | `<time_base>` | `file_position`, `embedded_timecode` | `file_position` |
+| `--prepend-silence-duration` | `<prepend_silence_duration>` | 非负十进制秒，或帧数如 `12f` | `0.0` |
+| `--append-silence-duration` | `<append_silence_duration>` | 非负十进制秒，或帧数如 `12f` | `0.0` |
+| `--line-mode-drc-profile` | `<line_mode_drc_profile>` | `film_standard`, `film_light`, `music_standard`, `music_light`, `speech`, `none` | `film_light` |
+| `--rf-mode-drc-profile` | `<rf_mode_drc_profile>` | 同上 | `film_light` |
+| `--loro-center-mix-level` | `<loro_center_mix_level>` | `+3`, `+1.5`, `0`, `-1.5`, `-3`, `-4.5`, `-6`, `-inf` | `-3` |
+| `--loro-surround-mix-level` | `<loro_surround_mix_level>` | `-1.5`, `-3`, `-4.5`, `-6`, `-inf` | `-3` |
+| `--ltrt-center-mix-level` | `<ltrt_center_mix_level>` | `+3`, `+1.5`, `0`, `-1.5`, `-3`, `-4.5`, `-6`, `-inf` | `-3` |
+| `--ltrt-surround-mix-level` | `<ltrt_surround_mix_level>` | `-1.5`, `-3`, `-4.5`, `-6`, `-inf` | `-3` |
+| `--preferred-downmix-mode` | `<preferred_downmix_mode>` | Blu-ray 有效值 `loro`, `ltrt` | 见上方布局规则；`ltrt-pl2` 不受 Blu-ray 模式支持 |
+| `--surround-trim-5-1` | `<surround_trim_5_1>` | `0`, `-3`, `-6`, `-9`, `auto` | `auto` |
+| `--height-trim-5-1` | `<height_trim_5_1>` | `-3`, `-6`, `-9`, `-12`, `auto` | `auto` |
+| `--clean-temp` | `<clean_temp>` | `true`, `false` | `true` |
+| `--temp-dir` | `<temp_dir><path>` | 有效目录路径 | 默认使用本次运行目录内的 `temp` |
+
+`--input-timecode-frame-rate` 属于输入 mezzanine 的 `offset`/`ffoa` 解释；`--timecode-frame-rate` 属于编码滤镜的 `start`/`end` 解释，两者不是同一参数。
+
+## 第二类：封装器扩展参数
+
+| CLI 参数 | 允许输入 | 作用 |
+| --- | --- | --- |
+| `--custom-dialnorm` | 整数 `-31` 至 `0` | 写入 `<custom_dialnorm>`；`0` 表示不覆盖测得值 |
+| `--segmented-batch` | 开关 | 手动开启自定义分段批量编码 |
+| `--segment-start` | `first_frame_of_action`, `file_start` | 首段起点；`file_start` 以 XML 视频帧编号 `0` 表示，不允许用户输入首段具体时间码 |
+| `--segment-point` | `HH:MM:SS:FF` | 重复 N 次并严格升序；各值不换算、不舍入，原样传递给相邻作业 |
+| `--compatibility-layout` | `5.1+2`, `flat-7.1` | 选择兼容呈现编码声道；默认 `5.1+2` |
+
+操作辅助参数：`--license-file <路径>` 可选择 DEE 目录外的许可证，否则自动使用 `dee.exe` 同目录的 `license.lic`。由于 DEE 5.2.1 无法打开自身路径含部分 Windows 合法特殊字符的许可证，封装器会把许可证临时转存到保守路径并显式传入；用后自动删除。`--overwrite` 允许替换目标输出；`--dry-run` 只完成备份、验证和 XML 生成。
+
+## 分段批量编码
+
+分段模式必须显式指定四类信息：`--segmented-batch`、`--timecode-frame-rate`、`--time-base`、`--segment-start`，以及至少一个 `--segment-point`。
+
+两个分段点生成三个作业的示例：
+
+```powershell
+python .\dee-ddp71-atmos-wrapper.py `
+  "C:\DEE-5.2.1" "D:\masters\feature.wav" "D:\encodes\feature.eb3" `
+  --compatibility-layout flat-7.1 `
+  --segmented-batch `
+  --timecode-frame-rate 24 `
+  --time-base file_position `
+  --segment-start first_frame_of_action `
+  --segment-point 00:20:00:00 `
+  --segment-point 00:40:00:00
+```
+
+输出为：
+
+```text
+feature.part001of003.eb3
+feature.part002of003.eb3
+feature.part003of003.eb3
+```
+
+区间构造规则：
+
+1. 首段 `<start>` 是 `first_frame_of_action`，或由 `file_start` 固定映射成帧编号 `0`。
+2. 每个非首段 `<start>` 使用相应分段点。
+3. 每个非末段 `<end>` 使用下一分段点。
+4. 末段始终写入 `<end>end_of_file</end>`。
+5. N 个分段点自动提交 N+1 个顺序编码作业。
+
+这里的 `--segment-start` 对应最终写入 XML 的 `<start>`，不是 DME v3.7 中仅用于给 Start 赋初值的“Initial start value”。封装器不把分段点换算到音频帧、访问单元或其他编码边界；拼接、混流、无缝性、音视频同步及最终交付仍须额外 QC。只需要其中一个片段时，同样从分段点入口生成整组作业，完成后保留目标片段即可。
+
+## 二进制补丁、备份和恢复
+
+每次运行在任何可能的二进制修改前都会：
+
+1. 对 DEE 目录加进程锁。
+2. 校验 `dee_audio_filter_ddp_atmos.dll` 精确 SHA-256。
+3. 将原始组件备份至 `backups/<安装标识>/` 并再次校验。
+4. 在内存中校验 P2+P3 补丁字节和预期补丁后哈希。
+
+`5.1+2` 不安装任何 DEE 补丁。`flat-7.1` 才会原子安装 P2+P3 成对补丁；全部 DEE 作业结束、失败或被正常中断时，封装器都会从已验证备份自动还原并校验原始哈希。若上次进程在断电或强制终止下没有机会执行 `finally`，下次启动在发现精确的已知补丁哈希且备份有效时会先恢复原版。任何未知二进制哈希都会被拒绝，不会盲目覆盖。
+
+DEE 5.2.1 自身的插件加载器在安装路径含部分 Windows 合法 Unicode 或标点符号时无法初始化若干音频滤镜。封装器检测到这类路径后，会把可执行目录中的运行时文件复制到本次运行目录下的保守临时路径；只补丁并执行这个临时副本，随后还原其 DLL 并删除临时副本。用户提供的特殊字符 DEE 包仍保留在原路径，在该兼容模式下从不被补丁。
+
+生成的 XML 始终记录完整输入、输出和临时目录；实际启动 DEE 时，封装器还会像原版示例批处理一样显式传入 `-a`、`-o` 与 `--temp`。这是为绕过 DEE 5.2.1 XML 本地存储解析器对含空格路径的截断，不改变 XML 参数或分段边界。DEE 异常退出后，组件还原和临时运行时删除都会对 Windows 短暂占用的文件句柄进行有限重试。
+
+作业 XML、日志、中间码流及运行清单位于 `work/runs/<运行标识>/`。`backups/` 与 `work/` 已被产品自己的 `.gitignore` 排除。
+
+## Surround EX 独立收尾
+
+当且仅当选择 `flat-7.1`，主线会在 DEE 原版组件已经恢复后，以独立进程调用 [tools/patch_dsur_ex.py](tools/patch_dsur_ex.py)。它只设置 AC-3 核心的 `dsurexmod=2` 并重算对应 CRC，不修改 dependent/JOC 帧，也不承担平面 7.1 声道布局的生成。
+
+该脚本保持独立，便于以后单独更新和审计。来源与固定版本：
+
+- 项目：[LumaVistaLab/DolbySurrEX-flag-patcher](https://github.com/LumaVistaLab/DolbySurrEX-flag-patcher)
+- commit：`2966e09`（本仓库参考目录名 `DolbySurrEX-flag-patcher-2966e09`）
+- 独立说明：[中文](tools/README_zh-CN.md) / [English](tools/README.md)
+
+## 第三类：暂不支持
+
+当前 CLI 不提供以下开关，也不会伪造对应 XML 参数：
+
+- LFE 低通滤波器开关控制。
+- 环绕声道 3 dB 衰减开关控制。
+- 环绕声道 90 度相移开关控制。
+
+它们继续遵循已验证 DEE Blu-ray Atmos 路径及母带 Trim Mode Record 的既有行为。
+
+## 开发验证
+
+```powershell
+python -m py_compile .\dee-ddp71-atmos-wrapper.py .\tools\patch_dsur_ex.py
+python -m unittest discover -s .\tests -v
+```
+
+2026-09-06 的特殊字符路径绝对/相对实机验证记录见 [VALIDATION_zh-CN.md](VALIDATION_zh-CN.md)。
+
+开发阶段只应修改本 `product` 目录。仓库其他目录仅作为逆向结论、样本和测试参考；`release` 是预留发布位置，不属于开发工作区。
+
+## 法律声明与许可证
+
+本产品是独立逆向工程研究的派生实现，与 Dolby Laboratories 没有从属关系，也未获得其认可。Dolby、Dolby Atmos、Dolby Digital Plus 和 Dolby Encoding Engine 是其相应所有者的商标或产品。用户须自行遵守适用的软件许可、法律及合同限制。
+
+本产品原创代码、文档和独立 Surround EX 工具依据 [GNU General Public License v3.0](LICENSE) 发布。该许可不覆盖 Dolby 专有软件、许可证或用户媒体。
