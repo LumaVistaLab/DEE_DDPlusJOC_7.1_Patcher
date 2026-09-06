@@ -1,4 +1,4 @@
-# DD+ 7.1 Atmos Patcher for DEE
+# DD+ 7.1 Atmos Patcher for Dolby Encoding Engine
 
 Language: English | [简体中文](README_zh-CN.md)
 
