@@ -11,7 +11,7 @@
 
 本产品不直接改写成品码流的编码声道标签，不依赖 Dolby Media Producer Suite v2.0 旧版制作流程，也不要求为了平面 7.1 另行制作一种特殊 ADM BWF。输入仍须是 DEE 原版 `atmos_mezz_encode_to_atmos_ddp_ec3.xml` 工作流可接受的合法 Dolby Atmos mezzanine。
 
-> 当前版本是开发版本，只支持经过验证的 `dee_audio_filter_ddp_atmos.dll` 精确构建。原始文件 SHA-256 必须为 `3d66bcec36031fd48e6565d15f05fea656642377ca4f8c98cdce1cce8b7e95d2`。
+> 本地发布版本：`v1.0-stable`。本发布只支持经过验证的 `dee_audio_filter_ddp_atmos.dll` 精确构建。原始文件 SHA-256 必须为 `3d66bcec36031fd48e6565d15f05fea656642377ca4f8c98cdce1cce8b7e95d2`。
 
 ## 要求
 
@@ -178,7 +178,7 @@ DEE 5.2.1 自身的插件加载器在安装路径含部分 Windows 合法 Unicod
 
 生成的 XML 始终记录完整输入、输出和临时目录；实际启动 DEE 时，包装器还会像原版示例批处理一样显式传入 `-a`、`-o` 与 `--temp`。这是为绕过 DEE 5.2.1 XML 本地存储解析器对含空格路径的截断，不改变 XML 参数或分段边界。DEE 异常退出后，组件还原和临时运行时删除都会对 Windows 短暂占用的文件句柄进行有限重试。
 
-作业 XML、日志、中间码流及运行清单位于 `work/runs/<运行标识>/`。`backups/` 与 `work/` 已被产品自己的 `.gitignore` 排除。
+作业 XML、日志、中间码流及运行清单位于 `work/runs/<运行标识>/`。经过校验的组件备份保存在 `backups/<安装标识>/`。
 
 ## Surround EX 独立收尾
 
@@ -200,16 +200,11 @@ DEE 5.2.1 自身的插件加载器在安装路径含部分 Windows 合法 Unicod
 
 它们继续遵循已验证 DEE Blu-ray Atmos 路径及母带 Trim Mode Record 的既有行为。
 
-## 开发验证
+## 发布验证
 
-```powershell
-python -m py_compile .\dee-ddp71-atmos-wrapper.py .\tools\patch_dsur_ex.py
-python -m unittest discover -s .\tests -v
-```
+打包前，主包装器和独立 Surround EX 工具均通过 Python 编译检查，源码树中的 14 项自动化测试全部通过。2026-09-06 还使用包含 Windows 合法 Unicode 与标点符号的绝对路径和相对路径完成了实机编码验证。开发测试与详细验证记录保留在源码仓库中，不随本运行包分发。
 
-2026-09-06 的特殊字符路径绝对/相对实机验证记录见 [VALIDATION_zh-CN.md](VALIDATION_zh-CN.md)。
-
-开发阶段只应修改本 `product` 目录。仓库其他目录仅作为逆向结论、样本和测试参考；`release` 是预留发布位置，不属于开发工作区。
+发布标识与产品内置的开发流版本独立记录。打包发布历史见 [RELEASE_NOTES.md](RELEASE_NOTES.md)。
 
 ## 法律声明与许可证
 
