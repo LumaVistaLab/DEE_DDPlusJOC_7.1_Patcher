@@ -4,6 +4,8 @@
 
 文件名：`dee-ddp71-atmos-wrapper.py`
 
+产品版本：`0.1.1-dev`
+
 这是本仓库已验证逆向工程成果的派生产品，也是首个面向现代 DD+ Atmos for Blu-ray 编码、支持用户选择两种兼容呈现编码声道的 Dolby Encoding Engine（DEE）v5.2.1 单命令 CLI 封装器：
 
 - `5.1+2` / `7.1 Height`：`L R C LFE Ls Rs Lvh Rvh`（码流分析工具也可能显示 `Tfl Tfr`）。
@@ -121,7 +123,7 @@ python .\dee-ddp71-atmos-wrapper.py `
 | --- | --- | --- |
 | `--custom-dialnorm` | 整数 `-31` 至 `0` | 写入 `<custom_dialnorm>`；`0` 表示不覆盖测得值 |
 | `--segmented-batch` | 开关 | 手动开启自定义分段批量编码 |
-| `--segment-start` | `first_frame_of_action`, `file_start` | 首段起点；`file_start` 以 XML 视频帧编号 `0` 表示，不允许用户输入首段具体时间码 |
+| `--segment-start` | `first_frame_of_action`, `file_start` | 首段逻辑起点；`file_start` 按 `--time-base` 转换，与 DME v3.7 行为一致 |
 | `--segment-point` | `HH:MM:SS:FF` | 重复 N 次并严格升序；各值不换算、不舍入，原样传递给相邻作业 |
 | `--compatibility-layout` | `5.1+2`, `flat-7.1` | 选择兼容呈现编码声道；默认 `5.1+2` |
 
@@ -140,7 +142,7 @@ python .\dee-ddp71-atmos-wrapper.py `
   --segmented-batch `
   --timecode-frame-rate 24 `
   --time-base file_position `
-  --segment-start first_frame_of_action `
+  --segment-start file_start `
   --segment-point 00:20:00:00 `
   --segment-point 00:40:00:00
 ```
@@ -155,13 +157,35 @@ feature.part003of003.eb3
 
 区间构造规则：
 
-1. 首段 `<start>` 是 `first_frame_of_action`，或由 `file_start` 固定映射成帧编号 `0`。
+1. 首段 `<start>` 可以是 `first_frame_of_action`；选择 `file_start` 时，`file_position` 下写入视频帧编号 `0`，`embedded_timecode` 下写入输入源时间码/offset。
 2. 每个非首段 `<start>` 使用相应分段点。
 3. 每个非末段 `<end>` 使用下一分段点。
 4. 末段始终写入 `<end>end_of_file</end>`。
 5. N 个分段点自动提交 N+1 个顺序编码作业。
 
-这里的 `--segment-start` 对应最终写入 XML 的 `<start>`，不是 DME v3.7 中仅用于给 Start 赋初值的“Initial start value”。包装器不把分段点换算到音频帧、访问单元或其他编码边界；拼接、混流、无缝性、音视频同步及最终交付仍须额外 QC。只需要其中一个片段时，同样从分段点入口生成整组作业，完成后保留目标片段即可。
+分段坐标由两个互相独立的部分组成。`--timecode-frame-rate` 是解释滤镜 `<start>`/`<end>`（包括所有 `--segment-point`）的视频时间码帧率，不是音频采样率；`--input-timecode-frame-rate` 则属于输入 `offset`/`ffoa`。`--time-base` 决定分段点使用的坐标原点：
+
+| `--time-base` | `--segment-point` 的含义 | `file_start` 写入首段 `<start>` 的值 |
+| --- | --- | --- |
+| `file_position` | 从物理文件头开始计算的相对位置 | 视频帧编号 `0` |
+| `embedded_timecode` | 输入时间线上的绝对源时间码 | 输入源时间码/offset |
+
+这一 `file_start` 行为与 DME v3.7 一致：将 Time base 从 File position 改为 Source timecode 后，Start 会从 `00:00:00:00` 变成输入源时间码，而不是继续保留零。`offset=auto` 时，包装器调用 DEE 5.2.1 同目录自带的 `atmos_info.exe`，读取 Atmos master 以绝对秒表示的起始位置，再按滤镜 `--timecode-frame-rate` 表示该位置。AtmosInfo 报告的源视频帧率不必与滤镜帧率相同：输入和滤镜的时间码帧率各有独立用途。滤镜采用任一受支持的 1000/1001 non-drop 速率——23.976、29.97 或 59.94——时，`3603.6` 秒都对应 `01:00:00:00`。若绝对秒位置不落在所选滤镜帧网格上，包装器会改用 DEE 与帧率无关的 `HH:MM:SS.xx` 格式，而不进行舍入。如果 AtmosInfo 无法报告起始位置，包装器会停止并要求显式提供 `--input-offset`，不会再生成无效的零起点；带帧字段的 `--input-offset` 必须显式提供 `--input-timecode-frame-rate`，但输入帧率可以与滤镜帧率不同，包装器会在两个时间域之间换算。
+
+例如，一个 59.94 fps non-drop 母版从源时间码 `01:00:00:00` 开始时，按源时间码分段可直接使用绝对时间线值：
+
+```powershell
+python .\dee-ddp71-atmos-wrapper.py `
+  "C:\DEE-5.2.1" "D:\masters\feature.wav" "D:\encodes\feature.eb3" `
+  --segmented-batch `
+  --timecode-frame-rate 59.94 `
+  --time-base embedded_timecode `
+  --segment-start file_start `
+  --segment-point 01:20:00:00 `
+  --segment-point 01:40:00:00
+```
+
+包装器把所有 `--segment-point` 原样传递给相邻作业。DEE 的时间码区间包含起点、不包含终点，因此同一点同时作为前一作业的 `<end>` 和后一作业的 `<start>`，会形成相邻区间且不重复边界帧。包装器不把分段点换算到音频帧、访问单元或其他编码边界。当前 `HH:MM:SS:FF` 分段语法仅支持 non-drop，不接受 DEE 的 `df` 后缀。拼接、混流、无缝性、音视频同步及最终交付仍须额外 QC。只需要其中一个片段时，同样从分段点入口生成整组作业，完成后保留目标片段即可。
 
 ## 二进制补丁、备份和恢复
 

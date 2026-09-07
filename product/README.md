@@ -4,6 +4,8 @@ English | [简体中文](README_zh-CN.md)
 
 Filename: `dee-ddp71-atmos-wrapper.py`
 
+Product version: `0.1.1-dev`
+
 This is the derivative product of this repository's validated reverse-engineering work. It is the first single-command Dolby Encoding Engine (DEE) v5.2.1 CLI wrapper for modern DD+ Atmos for Blu-ray encoding that lets users select either compatibility-presentation coded-channel layout:
 
 - `5.1+2` / `7.1 Height`: `L R C LFE Ls Rs Lvh Rvh` (some analyzers label the last pair `Tfl Tfr`).
@@ -121,7 +123,7 @@ The options are listed in original XML order. Every item is optional.
 | --- | --- | --- |
 | `--custom-dialnorm` | integer `-31` through `0` | writes `<custom_dialnorm>`; `0` means no measured-value override |
 | `--segmented-batch` | flag | explicitly enables N-point/N+1-job batch encoding |
-| `--segment-start` | `first_frame_of_action`, `file_start` | first-job start; `file_start` is emitted as XML video-frame number `0`, with no free-form first-start timecode |
+| `--segment-start` | `first_frame_of_action`, `file_start` | logical first-job start; `file_start` is translated according to `--time-base`, matching DME v3.7 |
 | `--segment-point` | `HH:MM:SS:FF` | repeat N times in strict ascending order; values are passed unchanged to adjacent jobs |
 | `--compatibility-layout` | `5.1+2`, `flat-7.1` | coded compatibility layout; default `5.1+2` |
 
@@ -140,7 +142,7 @@ python .\dee-ddp71-atmos-wrapper.py `
   --segmented-batch `
   --timecode-frame-rate 24 `
   --time-base file_position `
-  --segment-start first_frame_of_action `
+  --segment-start file_start `
   --segment-point 00:20:00:00 `
   --segment-point 00:40:00:00
 ```
@@ -155,13 +157,35 @@ feature.part003of003.eb3
 
 Range rules:
 
-1. First `<start>` is `first_frame_of_action`, or video-frame number `0` for `file_start`.
+1. First `<start>` is `first_frame_of_action`; for `file_start`, it is video-frame number `0` with `file_position`, or the input source timecode/offset with `embedded_timecode`.
 2. Every later `<start>` is the corresponding point.
 3. Every nonfinal `<end>` is the next point.
 4. Final `<end>` is always `end_of_file`.
 5. N points submit N+1 sequential DEE jobs.
 
-`--segment-start` is the value ultimately written to `<start>`; it is not merely DME v3.7's “Initial start value” used to initialize an editable Start field. The wrapper does not translate points to audio-frame, access-unit, or other encoded boundaries. Joining, muxing, seamlessness, A/V sync, and delivery still require separate QC. To encode only a target excerpt, generate the segmented set through this same entry point and retain the desired part afterward.
+The segmentation coordinate has two independent parts. `--timecode-frame-rate` is the video-timecode rate used to interpret filter `<start>`/`<end>`, including every `--segment-point`; it is not the audio sample rate. `--input-timecode-frame-rate` instead belongs to the input `offset`/`ffoa`. `--time-base` selects the origin used for the segment points:
+
+| `--time-base` | Meaning of `--segment-point` | `file_start` written to first `<start>` |
+| --- | --- | --- |
+| `file_position` | elapsed position from the physical file beginning | video-frame number `0` |
+| `embedded_timecode` | absolute source timecode on the input timeline | input source timecode/offset |
+
+This `file_start` behavior matches DME v3.7: changing Time base from File position to Source timecode changes Start from `00:00:00:00` to the input source timecode rather than leaving it at zero. With `offset=auto`, the wrapper runs the `atmos_info.exe` bundled beside DEE 5.2.1 to read the Atmos master start in absolute seconds, then expresses that position using the filter `--timecode-frame-rate`. AtmosInfo's source video frame rate does not have to match the filter rate: the input and filter timecode rates have separate roles. At any supported 1000/1001 nondrop filter rate—23.976, 29.97, or 59.94—`3603.6` seconds maps to `01:00:00:00`. If an absolute-second position is not on the selected filter frame grid, the wrapper emits DEE's frame-rate-independent `HH:MM:SS.xx` form instead of rounding it. If AtmosInfo cannot report the start, the wrapper stops and asks for an explicit `--input-offset`; it never emits an invalid zero start. A frame-form `--input-offset` requires an explicit `--input-timecode-frame-rate`, but that input rate may differ from the filter rate; the wrapper converts between their time domains.
+
+For example, if a 59.94-fps nondrop master begins at source timecode `01:00:00:00`, source-timecode segmentation uses the absolute timeline values directly:
+
+```powershell
+python .\dee-ddp71-atmos-wrapper.py `
+  "C:\DEE-5.2.1" "D:\masters\feature.wav" "D:\encodes\feature.eb3" `
+  --segmented-batch `
+  --timecode-frame-rate 59.94 `
+  --time-base embedded_timecode `
+  --segment-start file_start `
+  --segment-point 01:20:00:00 `
+  --segment-point 01:40:00:00
+```
+
+The wrapper passes all `--segment-point` values unchanged to adjacent jobs. DEE timecode ranges are start-inclusive and end-exclusive, so using the same point as one job's `<end>` and the next job's `<start>` creates adjacent timecode ranges without duplicating that boundary frame. Points are not translated to audio frames, access units, or other encoded boundaries. The current `HH:MM:SS:FF` segment syntax is nondrop only and does not accept DEE's `df` suffix. Joining, muxing, seamlessness, A/V sync, and delivery still require separate QC. To encode only a target excerpt, generate the segmented set through this same entry point and retain the desired part afterward.
 
 ## Binary patching, backup, and restoration
 

@@ -157,7 +157,8 @@ class WrapperTests(unittest.TestCase):
         )
         input_path, outputs = wrapper.validate_arguments(args)
         run_dir = self.root / "run"
-        plans = wrapper.plan_jobs(args, input_path, outputs, run_dir, run_dir / "temp")
+        first_start = wrapper.resolve_segment_first_start(args, self.root, input_path)
+        plans = wrapper.plan_jobs(args, input_path, outputs, run_dir, run_dir / "temp", first_start)
         self.assertEqual(len(plans), 3)
         self.assertEqual([plan.start for plan in plans], ["0", "00:10:00:00", "00:20:00:00"])
         self.assertEqual([plan.end for plan in plans], ["00:10:00:00", "00:20:00:00", "end_of_file"])
@@ -183,9 +184,130 @@ class WrapperTests(unittest.TestCase):
             "--segment-point", "01:02:03:04",
         )
         _, outputs = wrapper.validate_arguments(args)
-        plans = wrapper.plan_jobs(args, self.input, outputs, self.root / "run", self.root / "run" / "temp")
+        first_start = wrapper.resolve_segment_first_start(args, self.root, self.input)
+        plans = wrapper.plan_jobs(
+            args,
+            self.input,
+            outputs,
+            self.root / "run",
+            self.root / "run" / "temp",
+            first_start,
+        )
         self.assertEqual(plans[0].end, "01:02:03:04")
         self.assertEqual(plans[1].start, "01:02:03:04")
+
+    def test_embedded_file_start_uses_explicit_input_offset(self) -> None:
+        args = self.args(
+            "--input-timecode-frame-rate", "24",
+            "--input-offset", "01:00:00:00",
+            "--segmented-batch",
+            "--timecode-frame-rate", "24",
+            "--time-base", "embedded_timecode",
+            "--segment-start", "file_start",
+            "--segment-point", "01:10:00:00",
+        )
+        self.assertEqual(
+            wrapper.resolve_segment_first_start(args, self.root, self.input),
+            "01:00:00:00",
+        )
+
+    def test_embedded_file_start_is_probed_and_converted_at_fractional_rates(self) -> None:
+        atmos_info = self.root / "atmos_info.exe"
+        atmos_info.write_bytes(b"placeholder")
+        for frame_rate in ("23.976", "29.97", "59.94"):
+            with self.subTest(frame_rate=frame_rate):
+                args = self.args(
+                    "--segmented-batch",
+                    "--timecode-frame-rate", frame_rate,
+                    "--time-base", "embedded_timecode",
+                    "--segment-start", "file_start",
+                    "--segment-point", "01:10:00:00",
+                )
+                output = (
+                    "AtmosInfo Tool (version 1.1)\n"
+                    "    Start time (in seconds): 3603.600000000000000\n"
+                    f"    Video frame rate: {frame_rate}\n"
+                )
+                completed = subprocess.CompletedProcess([], 0, stdout=output)
+                with mock.patch.object(wrapper.subprocess, "run", return_value=completed) as run:
+                    first_start = wrapper.resolve_segment_first_start(args, self.root, self.input)
+                self.assertEqual(first_start, "01:00:00:00")
+                self.assertEqual(run.call_args.args[0][0], str(atmos_info))
+                self.assertIn("--skip-validation", run.call_args.args[0])
+                _, outputs = wrapper.validate_arguments(args)
+                run_dir = self.root / f"run-{frame_rate}"
+                plans = wrapper.plan_jobs(
+                    args,
+                    self.input,
+                    outputs,
+                    run_dir,
+                    run_dir / "temp",
+                    first_start,
+                )
+                root = ET.parse(plans[0].xml_path).getroot()
+                self.assertEqual(root.findtext("./filter/audio/encode_to_atmos_ddp/start"), "01:00:00:00")
+
+    def test_embedded_file_start_rejects_frame_offset_without_input_rate(self) -> None:
+        args = self.args(
+            "--input-offset", "01:00:00:00",
+            "--segmented-batch",
+            "--timecode-frame-rate", "24",
+            "--time-base", "embedded_timecode",
+            "--segment-start", "file_start",
+            "--segment-point", "01:10:00:00",
+        )
+        with self.assertRaisesRegex(wrapper.WrapperError, "input-timecode-frame-rate"):
+            wrapper.resolve_segment_first_start(args, self.root, self.input)
+
+    def test_embedded_file_start_allows_source_and_filter_rates_to_differ(self) -> None:
+        args = self.args(
+            "--input-timecode-frame-rate", "29.97",
+            "--segmented-batch",
+            "--timecode-frame-rate", "29.97",
+            "--time-base", "embedded_timecode",
+            "--segment-start", "file_start",
+            "--segment-point", "01:10:00:00",
+        )
+        (self.root / "atmos_info.exe").write_bytes(b"placeholder")
+        output = "Start time (in seconds): 3603.6\nVideo frame rate: 24\n"
+        completed = subprocess.CompletedProcess([], 0, stdout=output)
+        with mock.patch.object(wrapper.subprocess, "run", return_value=completed):
+            self.assertEqual(
+                wrapper.resolve_segment_first_start(args, self.root, self.input),
+                "01:00:00:00",
+            )
+
+    def test_embedded_file_start_uses_decimal_seconds_off_filter_grid(self) -> None:
+        args = self.args(
+            "--segmented-batch",
+            "--timecode-frame-rate", "29.97",
+            "--time-base", "embedded_timecode",
+            "--segment-start", "file_start",
+            "--segment-point", "01:10:00:00",
+        )
+        (self.root / "atmos_info.exe").write_bytes(b"placeholder")
+        output = "Start time (in seconds): 3600\nVideo frame rate: 24\n"
+        completed = subprocess.CompletedProcess([], 0, stdout=output)
+        with mock.patch.object(wrapper.subprocess, "run", return_value=completed):
+            self.assertEqual(
+                wrapper.resolve_segment_first_start(args, self.root, self.input),
+                "01:00:00.0",
+            )
+
+    def test_embedded_file_start_converts_explicit_offset_between_rates(self) -> None:
+        args = self.args(
+            "--input-timecode-frame-rate", "24",
+            "--input-offset", "01:00:00:00",
+            "--segmented-batch",
+            "--timecode-frame-rate", "29.97",
+            "--time-base", "embedded_timecode",
+            "--segment-start", "file_start",
+            "--segment-point", "01:10:00:00",
+        )
+        self.assertEqual(
+            wrapper.resolve_segment_first_start(args, self.root, self.input),
+            "01:00:00.0",
+        )
 
     def test_segmented_batch_rejects_missing_required_controls(self) -> None:
         args = self.args("--segmented-batch", "--segment-point", "00:00:10:00")

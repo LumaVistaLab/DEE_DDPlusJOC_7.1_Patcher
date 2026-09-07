@@ -24,12 +24,13 @@ import uuid
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from fractions import Fraction
 from pathlib import Path
 from typing import Iterator, Sequence
 
 
 PRODUCT_NAME = "DD+ 7.1 Atmos Wrapper for Dolby Encoding Engine"
-VERSION = "0.1.0-dev"
+VERSION = "0.1.1-dev"
 PRODUCT_DIR = Path(__file__).resolve().parent
 TEMPLATE_PATH = PRODUCT_DIR / "templates" / "atmos_mezz_encode_to_atmos_ddp_ec3.xml"
 DSUR_EX_PATCHER = PRODUCT_DIR / "tools" / "patch_dsur_ex.py"
@@ -53,8 +54,20 @@ SURROUND_MIX_LEVELS = ("-1.5", "-3", "-4.5", "-6", "-inf")
 SURROUND_TRIMS = ("0", "-3", "-6", "-9", "auto")
 HEIGHT_TRIMS = ("-3", "-6", "-9", "-12", "auto")
 SEGMENT_POINT_RE = re.compile(r"^(\d{2,}):([0-5]\d):([0-5]\d):(\d{2})$")
+ATMOS_INFO_START_RE = re.compile(r"^\s*Start time \(in seconds\):\s*(\d+(?:\.\d+)?)\s*$", re.MULTILINE)
 SILENCE_RE = re.compile(r"^(?:\d+(?:\.\d+)?|\d+f)$")
 CONSERVATIVE_WINDOWS_PATH_RE = re.compile(r"^[A-Za-z0-9_ .:\\/()\-]+$")
+FRAME_RATE_FRACTIONS = {
+    "23.976": Fraction(24000, 1001),
+    "24": Fraction(24, 1),
+    "25": Fraction(25, 1),
+    "29.97": Fraction(30000, 1001),
+    "30": Fraction(30, 1),
+    "48": Fraction(48, 1),
+    "50": Fraction(50, 1),
+    "59.94": Fraction(60000, 1001),
+    "60": Fraction(60, 1),
+}
 
 
 class WrapperError(RuntimeError):
@@ -200,7 +213,7 @@ def build_parser() -> argparse.ArgumentParser:
     extended.add_argument(
         "--segment-start",
         choices=("first_frame_of_action", "file_start"),
-        help="first segment start; file_start is emitted as XML frame number 0",
+        help="first segment start; file_start follows the selected time base",
     )
     extended.add_argument(
         "--segment-point",
@@ -258,6 +271,114 @@ def validate_segment_point(value: str, frame_rate: str) -> tuple[int, int, int, 
             f"invalid frame field in segment point {value!r}: {fields[3]} is not below {nominal_rate}"
         )
     return fields
+
+
+def seconds_to_decimal_timecode(seconds: Fraction) -> str:
+    """Format absolute seconds as DEE's frame-rate-independent HH:MM:SS.xx form."""
+    scale = 1_000_000_000
+    scaled = seconds * scale
+    total_units = (scaled.numerator * 2 + scaled.denominator) // (2 * scaled.denominator)
+    whole_seconds, fractional_units = divmod(total_units, scale)
+    hours, remainder = divmod(whole_seconds, 3600)
+    minutes, seconds_field = divmod(remainder, 60)
+    fraction = f"{fractional_units:09d}".rstrip("0") or "0"
+    return f"{hours:02d}:{minutes:02d}:{seconds_field:02d}.{fraction}"
+
+
+def seconds_to_timecode(seconds_value: str | Fraction, frame_rate: str) -> str:
+    """Express nonnegative absolute seconds in the filter's timecode domain."""
+    try:
+        seconds = Fraction(seconds_value)
+    except (ValueError, ZeroDivisionError) as exc:
+        raise WrapperError(f"invalid Atmos source start time reported by atmos_info: {seconds_value!r}") from exc
+    if seconds < 0:
+        raise WrapperError(f"negative Atmos source start time reported by atmos_info: {seconds_value!r}")
+    rate = FRAME_RATE_FRACTIONS[frame_rate]
+    exact_frames = seconds * rate
+    total_frames = (exact_frames.numerator * 2 + exact_frames.denominator) // (2 * exact_frames.denominator)
+    if abs(exact_frames - total_frames) > Fraction(1, 1000):
+        return seconds_to_decimal_timecode(seconds)
+    nominal_rate = (rate.numerator + rate.denominator - 1) // rate.denominator
+    total_seconds, frames = divmod(total_frames, nominal_rate)
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}:{frames:02d}"
+
+
+def nondrop_timecode_to_seconds(value: str, frame_rate: str) -> Fraction:
+    """Interpret an HH:MM:SS:FF input value using its own input frame rate."""
+    hours, minutes, seconds, frames = validate_segment_point(value, frame_rate)
+    rate = FRAME_RATE_FRACTIONS[frame_rate]
+    nominal_rate = (rate.numerator + rate.denominator - 1) // rate.denominator
+    total_frames = ((hours * 60 + minutes) * 60 + seconds) * nominal_rate + frames
+    return Fraction(total_frames, 1) / rate
+
+
+def probe_atmos_file_start(dee_dir: Path, input_path: Path, frame_rate: str) -> str:
+    """Read the embedded source start with DEE 5.2.1's bundled AtmosInfo tool."""
+    tool = dee_dir / "atmos_info.exe"
+    if not tool.is_file():
+        raise WrapperError(
+            "embedded_timecode file_start requires atmos_info.exe beside dee.exe, "
+            "or an explicit --input-offset"
+        )
+    creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+    process_encoding = locale.getpreferredencoding(False) if os.name == "nt" else "utf-8"
+    try:
+        completed = subprocess.run(
+            [str(tool), "--skip-validation", "--input", str(input_path)],
+            cwd=str(dee_dir),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding=process_encoding,
+            errors="replace",
+            creationflags=creationflags,
+            check=False,
+            timeout=60,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise WrapperError(
+            "atmos_info timed out while reading the embedded file start; supply an explicit --input-offset"
+        ) from exc
+    except OSError as exc:
+        raise WrapperError(
+            f"could not start atmos_info to read the embedded file start: {exc}; "
+            "supply an explicit --input-offset"
+        ) from exc
+    if completed.returncode != 0:
+        raise WrapperError(
+            f"atmos_info could not read the embedded file start (exit {completed.returncode}); "
+            "supply an explicit --input-offset"
+        )
+    start_match = ATMOS_INFO_START_RE.search(completed.stdout)
+    if start_match is None:
+        raise WrapperError(
+            "atmos_info did not report the source start; "
+            "supply an explicit --input-offset"
+        )
+    return seconds_to_timecode(start_match.group(1), frame_rate)
+
+
+def resolve_segment_first_start(args: argparse.Namespace, dee_dir: Path, input_path: Path) -> str | None:
+    if not args.segmented_batch:
+        return None
+    if args.segment_start == "first_frame_of_action":
+        return "first_frame_of_action"
+    if args.time_base == "file_position":
+        return "0"
+    if args.input_offset is not None and args.input_offset.casefold() != "auto":
+        if SEGMENT_POINT_RE.fullmatch(args.input_offset):
+            input_rate = args.input_timecode_frame_rate
+            if input_rate in (None, "not_indicated"):
+                raise WrapperError(
+                    "frame-based --input-offset with embedded_timecode file_start requires "
+                    "--input-timecode-frame-rate"
+                )
+            offset_seconds = nondrop_timecode_to_seconds(args.input_offset, input_rate)
+            return seconds_to_timecode(offset_seconds, args.timecode_frame_rate)
+        return args.input_offset
+    return probe_atmos_file_start(dee_dir, input_path, args.timecode_frame_rate)
 
 
 def validate_arguments(args: argparse.Namespace) -> tuple[Path, list[Path]]:
@@ -660,6 +781,7 @@ def plan_jobs(
     outputs: list[Path],
     run_dir: Path,
     temp_dir: Path,
+    resolved_first_start: str | None,
 ) -> list[JobPlan]:
     count = len(outputs)
     xml_dir = run_dir / "jobs"
@@ -672,8 +794,9 @@ def plan_jobs(
         finalized_dir.mkdir(parents=True, exist_ok=True)
 
     if args.segmented_batch:
-        first_start = "first_frame_of_action" if args.segment_start == "first_frame_of_action" else "0"
-        starts: list[str | None] = [first_start, *args.segment_point]
+        if resolved_first_start is None:
+            raise WrapperError("segmented batch first start was not resolved")
+        starts: list[str | None] = [resolved_first_start, *args.segment_point]
         ends: list[str | None] = [*args.segment_point, "end_of_file"]
     else:
         starts = [None]
@@ -790,6 +913,7 @@ def plan_record(plan: JobPlan) -> dict[str, object]:
 def execute(args: argparse.Namespace) -> int:
     dee_dir, dee_exe, component = resolve_dee(args.dee)
     input_path, outputs = validate_arguments(args)
+    resolved_first_start = resolve_segment_first_start(args, dee_dir, input_path)
     license_source = resolve_license(args, dee_dir)
     if not DSUR_EX_PATCHER.is_file():
         raise WrapperError(f"bundled independent Surround EX patcher is missing: {DSUR_EX_PATCHER}")
@@ -799,7 +923,7 @@ def execute(args: argparse.Namespace) -> int:
     run_dir.mkdir(parents=True, exist_ok=False)
     temp_dir = args.temp_dir.expanduser().resolve() if args.temp_dir else run_dir / "temp"
     temp_dir.mkdir(parents=True, exist_ok=True)
-    plans = plan_jobs(args, input_path, outputs, run_dir, temp_dir)
+    plans = plan_jobs(args, input_path, outputs, run_dir, temp_dir, resolved_first_start)
     manifest_path = run_dir / "run.json"
     manifest: dict[str, object] = {
         "schema_version": 1,
