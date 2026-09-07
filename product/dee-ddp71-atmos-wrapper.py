@@ -194,7 +194,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     original.add_argument("--surround-trim-5-1", choices=SURROUND_TRIMS)
     original.add_argument("--height-trim-5-1", choices=HEIGHT_TRIMS)
-    original.add_argument("--clean-temp", type=parse_bool, metavar="{true,false}")
+    original.add_argument(
+        "--clean-temp",
+        type=parse_bool,
+        metavar="{true,false}",
+        help="also remove wrapper encoded/finalized streams when the effective value is true",
+    )
     original.add_argument("--temp-dir", type=Path)
 
     extended = parser.add_argument_group("wrapper extensions (in processing order)")
@@ -686,6 +691,44 @@ def remove_path_with_retries(path: Path, *, recursive: bool = False) -> None:
     raise last_error
 
 
+def cleanup_intermediate_streams(plans: Sequence[JobPlan]) -> list[str]:
+    """Remove wrapper-owned encoded/finalized streams and return warnings."""
+    warnings: list[str] = []
+    for plan in plans:
+        for path in (plan.encoded_output, plan.finalized_output):
+            if path is None:
+                continue
+            try:
+                remove_path_with_retries(path)
+            except OSError as exc:
+                warnings.append(f"{path}: {exc}")
+    return warnings
+
+
+def existing_intermediate_streams(plans: Sequence[JobPlan]) -> list[str]:
+    paths: list[str] = []
+    for plan in plans:
+        for path in (plan.encoded_output, plan.finalized_output):
+            if path is not None and path.is_file():
+                paths.append(str(path))
+    return paths
+
+
+def record_intermediate_cleanup(
+    manifest: dict[str, object],
+    warnings: Sequence[str],
+    retained_failed_streams: Sequence[str] = (),
+) -> None:
+    unique_warnings = list(dict.fromkeys(warnings))
+    manifest["intermediate_stream_cleanup"] = "partial" if unique_warnings else "complete"
+    if retained_failed_streams:
+        manifest["retained_failed_intermediate_streams"] = list(retained_failed_streams)
+    if unique_warnings:
+        manifest["intermediate_cleanup_warnings"] = unique_warnings
+        for warning in unique_warnings:
+            print(f"WARNING: could not remove intermediate stream: {warning}", file=sys.stderr)
+
+
 def parse_template() -> ET.ElementTree:
     if not TEMPLATE_PATH.is_file():
         raise WrapperError(f"bundled XML template is missing: {TEMPLATE_PATH}")
@@ -941,6 +984,21 @@ def effective_data_rate(plan: JobPlan) -> int:
     return data_rate
 
 
+def effective_clean_temp(plan: JobPlan) -> bool:
+    try:
+        root = ET.parse(plan.xml_path).getroot()
+    except (ET.ParseError, OSError) as exc:
+        raise WrapperError(f"could not read generated job XML: {plan.xml_path}: {exc}") from exc
+    value = require_element(root, "./misc/temp_dir/clean_temp").text
+    if value is not None:
+        normalized = value.strip().casefold()
+        if normalized == "true":
+            return True
+        if normalized == "false":
+            return False
+    raise WrapperError(f"generated job XML has invalid clean_temp: {value!r}")
+
+
 def execute(args: argparse.Namespace) -> int:
     dee_dir, dee_exe, component = resolve_dee(args.dee)
     input_path, outputs = validate_arguments(args)
@@ -955,6 +1013,7 @@ def execute(args: argparse.Namespace) -> int:
     temp_dir = args.temp_dir.expanduser().resolve() if args.temp_dir else run_dir / "temp"
     temp_dir.mkdir(parents=True, exist_ok=True)
     plans = plan_jobs(args, input_path, outputs, run_dir, temp_dir, resolved_first_start)
+    clean_temp = effective_clean_temp(plans[0])
     manifest_path = run_dir / "run.json"
     manifest: dict[str, object] = {
         "schema_version": 1,
@@ -971,6 +1030,10 @@ def execute(args: argparse.Namespace) -> int:
         "encoding_backend": "atmosprocessor",
         "encoder_mode": "bluray",
         "segmented_batch": args.segmented_batch,
+        "clean_temp": clean_temp,
+        "intermediate_stream_cleanup": (
+            "not-needed" if args.dry_run else ("pending" if clean_temp else "disabled")
+        ),
         "jobs": [plan_record(plan) for plan in plans],
         "dry_run": args.dry_run,
     }
@@ -982,6 +1045,7 @@ def execute(args: argparse.Namespace) -> int:
     execution_component = component
     restore_required = False
     primary_error: BaseException | None = None
+    completed_plans: list[JobPlan] = []
 
     with installation_lock(dee_dir):
         try:
@@ -1077,6 +1141,11 @@ def execute(args: argparse.Namespace) -> int:
                     # next DEE job. Flat-7.1 output is finalized first, so the
                     # requested path never exposes the pre-Surround-EX stream.
                     finalize_and_publish(args, plan)
+                    completed_plans.append(plan)
+                    if clean_temp:
+                        # A final sweep retries any transient per-segment
+                        # cleanup failure and determines the recorded result.
+                        cleanup_intermediate_streams([plan])
         except BaseException as exc:
             primary_error = exc
             manifest["status"] = "failed"
@@ -1110,6 +1179,15 @@ def execute(args: argparse.Namespace) -> int:
                     manifest["safe_runtime_stage_removed"] = True
                 except OSError as runtime_cleanup_error:
                     manifest["runtime_cleanup_warning"] = str(runtime_cleanup_error)
+            if clean_temp and not args.dry_run and (
+                args.segmented_batch or primary_error is not None or restore_failure is not None
+            ):
+                incomplete_plans = [plan for plan in plans if plan not in completed_plans]
+                record_intermediate_cleanup(
+                    manifest,
+                    cleanup_intermediate_streams(completed_plans),
+                    existing_intermediate_streams(incomplete_plans),
+                )
             manifest["updated_at"] = utc_now()
             manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
             if restore_failure is not None and primary_error is None:
@@ -1119,6 +1197,7 @@ def execute(args: argparse.Namespace) -> int:
         if not args.segmented_batch:
             manifest["status"] = "finalizing"
             finalize_and_publish(args, plans[0])
+            completed_plans.append(plans[0])
 
         manifest["status"] = "complete"
         manifest["completed_at"] = utc_now()
@@ -1130,6 +1209,13 @@ def execute(args: argparse.Namespace) -> int:
         manifest["error"] = f"{type(exc).__name__}: {exc}"
         raise
     finally:
+        if clean_temp and not args.segmented_batch:
+            incomplete_plans = [plan for plan in plans if plan not in completed_plans]
+            record_intermediate_cleanup(
+                manifest,
+                cleanup_intermediate_streams(completed_plans),
+                existing_intermediate_streams(incomplete_plans),
+            )
         manifest["updated_at"] = utc_now()
         manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return 0

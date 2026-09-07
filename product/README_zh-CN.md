@@ -112,10 +112,12 @@ python .\dee-ddp71-atmos-wrapper.py `
 | `--preferred-downmix-mode` | `<preferred_downmix_mode>` | Blu-ray 有效值 `loro`, `ltrt` | 见上方布局规则；`ltrt-pl2` 不受 Blu-ray 模式支持 |
 | `--surround-trim-5-1` | `<surround_trim_5_1>` | `0`, `-3`, `-6`, `-9`, `auto` | `auto` |
 | `--height-trim-5-1` | `<height_trim_5_1>` | `-3`, `-6`, `-9`, `-12`, `auto` | `auto` |
-| `--clean-temp` | `<clean_temp>` | `true`, `false` | `true` |
+| `--clean-temp` | `<clean_temp>` | `true`, `false` | `true`；同时按下文说明控制包装器中间码流 |
 | `--temp-dir` | `<temp_dir><path>` | 有效目录路径 | 默认使用本次运行目录内的 `temp` |
 
 `--input-timecode-frame-rate` 属于输入 mezzanine 的 `offset`/`ffoa` 解释；`--timecode-frame-rate` 属于编码滤镜的 `start`/`end` 解释，两者不是同一参数。
+
+`--clean-temp` 的有效值具有双重作用：一方面写入 DEE 的 `<clean_temp>` 参数；另一方面，值为 `true` 时，包装器会删除本次运行目录 `encoded/`、`finalized/` 中每个成功发布分段的中间码流。若某段在编码、收尾或发布阶段失败，该段已经产生的中间码流会特意保留用于诊断，并列入 `run.json`；尚未开始的分段不会产生码流。设为 `--clean-temp false` 时，成功分段的中间码流也会保留。无论此值如何，备份及其他全部运行记录（包括生成的作业 XML、日志和 `run.json`）都会始终保留。
 
 ## 第二类：包装器扩展参数
 

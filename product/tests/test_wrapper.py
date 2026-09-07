@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -457,6 +458,7 @@ class WrapperTests(unittest.TestCase):
                 str(self.input),
                 str(output),
                 "--compatibility-layout", "flat-7.1",
+                "--clean-temp", "false",
             ]
         )
         real_run_logged = wrapper.run_logged
@@ -497,6 +499,19 @@ class WrapperTests(unittest.TestCase):
         )
         self.assertEqual(check.returncode, 0, check.stdout)
         self.assertIn("dsurexmod counts: {2: 1}", check.stdout)
+        runs_root = PRODUCT_DIR / "work" / "runs"
+        created = set(runs_root.iterdir()) - self.runs_before
+        self.assertEqual(len(created), 1)
+        run_dir = created.pop()
+        self.assertEqual(len(list((run_dir / "encoded").glob("*.eb3"))), 1)
+        self.assertEqual(len(list((run_dir / "finalized").glob("*.eb3"))), 1)
+        self.assertTrue((run_dir / "jobs" / "single.xml").is_file())
+        self.assertTrue((run_dir / "logs" / "single.dee.log").is_file())
+        self.assertTrue((run_dir / "logs" / "single.dsur-ex.log").is_file())
+        manifest = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+        self.assertFalse(manifest["clean_temp"])
+        self.assertEqual(manifest["intermediate_stream_cleanup"], "disabled")
+        self.assertTrue(Path(manifest["backup"]).is_file())
 
     def test_segmented_batch_publishes_each_completed_segment_immediately(self) -> None:
         original = PRODUCT_DIR.parent / "dll_original" / wrapper.PATCHED_COMPONENT
@@ -534,6 +549,9 @@ class WrapperTests(unittest.TestCase):
                 if dee_job_count == 2:
                     self.assertTrue(outputs[0].is_file())
                     self.assertFalse(outputs[1].exists())
+                    command = list(command)
+                    Path(command[command.index("-o") + 1]).write_bytes(b"partial stream")
+                    log_path.write_text("simulated DEE failure\n", encoding="utf-8")
                     raise wrapper.CommandFailure("simulated second DEE job", 77)
                 command = list(command)
                 cli_output = Path(command[command.index("-o") + 1])
@@ -561,6 +579,22 @@ class WrapperTests(unittest.TestCase):
         )
         self.assertEqual(check.returncode, 0, check.stdout)
         self.assertIn("dsurexmod counts: {2: 1}", check.stdout)
+        runs_root = PRODUCT_DIR / "work" / "runs"
+        created = set(runs_root.iterdir()) - self.runs_before
+        self.assertEqual(len(created), 1)
+        run_dir = created.pop()
+        retained = run_dir / "encoded" / "part002of002.encoded.eb3"
+        self.assertEqual(list((run_dir / "encoded").iterdir()), [retained])
+        self.assertEqual(retained.read_bytes(), b"partial stream")
+        self.assertEqual(list((run_dir / "finalized").iterdir()), [])
+        self.assertEqual(len(list((run_dir / "jobs").glob("*.xml"))), 2)
+        self.assertEqual(len(list((run_dir / "logs").glob("*.log"))), 3)
+        manifest = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+        self.assertTrue(manifest["clean_temp"])
+        self.assertEqual(manifest["intermediate_stream_cleanup"], "complete")
+        self.assertEqual(manifest["retained_failed_intermediate_streams"], [str(retained)])
+        self.assertEqual(manifest["status"], "failed")
+        self.assertTrue(Path(manifest["backup"]).is_file())
 
     def test_dee_failure_still_restores_original_component(self) -> None:
         original = PRODUCT_DIR.parent / "dll_original" / wrapper.PATCHED_COMPONENT

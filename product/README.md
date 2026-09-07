@@ -112,10 +112,12 @@ The options are listed in original XML order. Every item is optional.
 | `--preferred-downmix-mode` | `<preferred_downmix_mode>` | Blu-ray-valid `loro`, `ltrt` | follows the layout rules above; Blu-ray mode does not support `ltrt-pl2` |
 | `--surround-trim-5-1` | `<surround_trim_5_1>` | `0`, `-3`, `-6`, `-9`, `auto` | `auto` |
 | `--height-trim-5-1` | `<height_trim_5_1>` | `-3`, `-6`, `-9`, `-12`, `auto` | `auto` |
-| `--clean-temp` | `<clean_temp>` | `true`, `false` | `true` |
+| `--clean-temp` | `<clean_temp>` | `true`, `false` | `true`; also controls wrapper intermediate streams as described below |
 | `--temp-dir` | `<temp_dir><path>` | valid directory path | defaults to `temp` inside the run directory |
 
 `--input-timecode-frame-rate` controls input-mezzanine `offset`/`ffoa`; `--timecode-frame-rate` controls filter `start`/`end`. They are distinct XML parameters.
+
+The effective `--clean-temp` value has two roles. It is written to DEE's `<clean_temp>` parameter, and when `true` the wrapper removes each successfully published segment's copies from the run's `encoded/` and `finalized/` directories. Intermediate streams from the segment that fails during encoding, finalization, or publication are deliberately retained for diagnosis and listed in `run.json`; segments that have not started produce no streams. Set `--clean-temp false` to retain intermediate bitstreams from successful segments as well. Backups and all other run records—including generated job XML, logs, and `run.json`—are always retained regardless of this setting.
 
 ## Category 2: wrapper extensions
 
