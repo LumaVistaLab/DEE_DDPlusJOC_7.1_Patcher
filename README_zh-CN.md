@@ -6,7 +6,7 @@
 
 ## 逆向成果的派生产品
 
-**DD+ 7.1 Atmos Wrapper for Dolby Encoding Engine 是本仓库逆向成果转化而来的派生产品，也是首个面向现代 DD+ Atmos for Blu-ray 编码、支持用户选择两种兼容呈现编码声道的 Dolby Encoding Engine v5.2.1 封装器：**
+**DD+ 7.1 Atmos Wrapper for Dolby Encoding Engine 是本仓库逆向成果转化而来的派生产品，也是首个面向现代 DD+ Atmos for Blu-ray 编码、支持用户选择两种兼容呈现编码声道的 Dolby Encoding Engine v5.2.1 包装器：**
 
 - `5.1+2` / `7.1 Height`：`L R C LFE Ls Rs Lvh Rvh`。
 - 平面 `7.1`：`L R C LFE Ls Rs Lrs Rrs`。

@@ -6,7 +6,7 @@
 
 产品版本：`0.1.2-dev`
 
-这是本仓库已验证逆向工程成果的派生产品，也是首个面向现代 DD+ Atmos for Blu-ray 编码、支持用户选择两种兼容呈现编码声道的 Dolby Encoding Engine（DEE）v5.2.1 单命令 CLI 封装器：
+这是本仓库已验证逆向工程成果的派生产品，也是首个面向现代 DD+ Atmos for Blu-ray 编码、支持用户选择两种兼容呈现编码声道的 Dolby Encoding Engine（DEE）v5.2.1 单命令 CLI 包装器：
 
 - `5.1+2` / `7.1 Height`：`L R C LFE Ls Rs Lvh Rvh`（码流分析工具也可能显示 `Tfl Tfr`）。
 - 平面 `7.1`：`L R C LFE Ls Rs Lrs Rrs`（码流分析工具也可能显示 `Lb Rb`）。
