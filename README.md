@@ -2,7 +2,36 @@
 
 Language: English | [简体中文](README_zh-CN.md)
 
-A validated binary-patch implementation and reverse-engineering project for Dolby Encoding Engine (DEE) 5.2.1. The paired P2+P3 implementation makes Blu-ray Dolby Digital Plus with Dolby Atmos (DD+ JOC) use this flat 7.1 coded/compatibility layout:
+This repository remains a validated binary-patch implementation and reverse-engineering project for Dolby Encoding Engine (DEE) 5.2.1. Alongside its low-level implementation, validation evidence, and reproducible research chain, it turns those reverse-engineering results into the practical derivative product introduced below.
+
+## Derivative product from the research
+
+**DD+ 7.1 Atmos Wrapper for Dolby Encoding Engine is the derivative product that turns this repository's reverse-engineering results into a practical tool. It is the first Dolby Encoding Engine v5.2.1 wrapper for modern DD+ Atmos for Blu-ray encoding that lets users select either compatibility-presentation coded-channel layout:**
+
+- `5.1+2` / `7.1 Height`: `L R C LFE Ls Rs Lvh Rvh`.
+- Flat `7.1`: `L R C LFE Ls Rs Lrs Rrs`.
+
+It does not directly rewrite the coded-channel labels of a finished bitstream, require a specially authored ADM BWF for flat 7.1, or depend on the legacy Dolby Media Producer Suite v2.0 workflow. Its role is not to be another single-purpose patch script, but to turn the validated reverse-engineering result into an operable, auditable, and recoverable production orchestrator. It is built around a user's legally obtained DEE v5.2.1 installation and is not a replacement for the Dolby encoder, license, or proprietary components.
+
+From a valid Dolby Atmos mezzanine to the final `.eb3` / `.ec3` deliverable, the wrapper formally takes ownership of orchestrating the production chain: preflight checks, exact binary verification, recoverable backup, job-XML generation and parameter overrides, optional segmented batches, DEE execution and log retention, original-component restoration, and the Surround EX signaling finalization required by flat 7.1 output.
+
+```text
+Dolby Atmos mezzanine
+  -> DD+ 7.1 Atmos Wrapper
+  -> safely orchestrated DEE 5.2.1, layout selection, and required stream finalization
+  -> Blu-ray DD+ JOC / Dolby Atmos (.eb3/.ec3)
+```
+
+See [product/README.md](product/README.md) for product source, the complete option reference, and development usage. The latest local packaged snapshot and its checksums are under [release/](release/). To inspect the source-tree CLI:
+
+```powershell
+cd .\product
+python .\dee-ddp71-atmos-wrapper.py --help
+```
+
+## Validated technical foundation
+
+The derivative product above is built on this repository's validated binary-patch implementation and reverse-engineering work for Dolby Encoding Engine (DEE) 5.2.1. The paired P2+P3 implementation makes Blu-ray Dolby Digital Plus with Dolby Atmos (DD+ JOC) use this flat 7.1 coded/compatibility layout:
 
 ```text
 L R C LFE Ls Rs Lrs Rrs
@@ -16,10 +45,11 @@ L R C LFE Ls Rs Tfl Tfr
 
 This project does not target ordinary channel-based E-AC-3 7.1. The target is specifically a DD+ JOC / Dolby Atmos for Blu-ray bitstream with a flat 7.1 coded layout.
 
-The supported end-to-end output workflow has two required stages: encode with
-the validated P2+P3 DLL, then finalize the stream with the bundled
-`DolbySurrEX-flag-patcher`. P2+P3 already creates the 5.1 Dolby PLIIx matrixed
-compatibility core; the second stage supplies its missing Surround EX signaling.
+Under unified wrapper orchestration, the validated flat-7.1 implementation has
+two required internal stages: encode with the validated P2+P3 DLL, then finalize
+the stream with the bundled `DolbySurrEX-flag-patcher`. P2+P3 already creates the
+5.1 Dolby PLIIx matrixed compatibility core; the second stage supplies its missing
+Surround EX signaling.
 
 > [!WARNING]
 > This patch implementation is validated for one exact DEE 5.2.1 binary build and the encoding/decoding paths documented below. It is not claimed to be a general-purpose or production-ready patch. Always preserve the original binary.
@@ -39,7 +69,10 @@ The successful P1 experiment proves that changing the AtmosProcessor render form
 
 Automated static analysis also found a separate `0x0C / 0x0E / 0x10` three-state channel-mode mapping. Because P2+P3 already reaches the target, that candidate was neither modified nor dynamically tested.
 
-## Formal end-to-end workflow
+## Validated underlying processing chain
+
+The wrapper automatically executes the key flat-7.1 chain below. It is also the
+subject of the research evidence documented in the remainder of this README:
 
 ```text
 ADM/DAMF master
@@ -134,7 +167,7 @@ addresses, per-channel measurements, and profile mapping. Dolby's descriptions
 of these controls are available in [A Guide to Dolby Metadata](https://professionalsupport.dolby.com/s/article/A-Guide-to-Dolby-Metadata?language=en_US)
 and [How the 5.1 and stereo downmix settings work](https://professionalsupport.dolby.com/s/article/How-do-the-5-1-and-Stereo-downmix-settings-work?language=en_US).
 
-## Requirements
+## Research and reproduction requirements
 
 - A legally obtained Dolby Encoding Engine 5.2.1 installation and valid license
 - The exact supported `dee_audio_filter_ddp_atmos.dll` build
@@ -155,21 +188,31 @@ The patch scripts refuse to modify an unsupported binary and verify the expected
 
 ```text
 DEE_DDPlusJOC_7.1_Patcher/
-|-- patchers/                            Patch-generation scripts
-|-- DolbySurrEX-flag-patcher-2966e09/   Formal dsurexmod/CRC finalization stage
-|-- automation/                          Isolated build, reverse, test, and validation scripts
-|-- patch_logs/                          Preserved complete test logs
+|-- product/                             Derivative wrapper product: source, template, tool, tests, and docs
+|-- release/                             Latest local release snapshot, ZIP, and checksum files
+|-- automation/                          Build, reverse-engineering, test, and validation automation
+|-- patchers/                            Historical patch-generation and diagnostic scripts
+|-- DolbySurrEX-flag-patcher-2966e09/   Pinned dsurexmod/CRC tool reference source
 |-- example-flow/                        Example Blu-ray DD+ Atmos job files
+|-- patch_logs/                          Preserved complete test logs
 |-- gpt-context/                         Reverse-engineering notes and context transfer
-|-- dll_original/                        Local original DLL; ignored by Git
-|-- dll_patched/                         Locally generated patched DLLs; ignored by Git
-|-- dee_copy/                            Local DEE runtime copy; ignored by Git
-`-- results/                             Local encoded test outputs
+|-- dll_original/, dll_patched/          Local original/patched DLL work areas; ignored by Git
+|-- dee_copy/, results/                  Local DEE copy and encoded test outputs; ignored by Git
+|-- README.md, README_zh-CN.md           Project overview, derivative-product entry point, and research index
+`-- LICENSE                              License for original repository content
 ```
 
-Dolby binaries, licenses, and large test media are not part of the source distribution. Supply them from your own authorized installation.
+`product/` is the development source of truth for the derivative wrapper product. `release/`
+contains only the newest local packaged snapshot. The remaining directories
+primarily preserve reverse-engineering findings, reproducible evidence, samples,
+and historical tooling. Neither the source tree nor release package contains
+Dolby binaries, licenses, or large test media; supply them from your own
+authorized installation.
 
-## Building the validated flat-7.1 patch
+## Research use: building the validated flat-7.1 patch
+
+> The commands below reproduce the underlying research and validation. For actual
+> production work, use the unified `product/dee-ddp71-atmos-wrapper.py` entry point.
 
 From the repository root:
 
@@ -179,7 +222,7 @@ python .\automation\build_flat71_patch.py
 
 This builds only the validated paired P2+P3 variant. It checks the source DLL hash, original bytes at both sites, PE checksum, and final output hash. Existing output is not overwritten by default.
 
-## Generating legacy diagnostic variants
+## Research use: generating legacy diagnostic variants
 
 From the repository root, run:
 
@@ -193,7 +236,7 @@ This creates the P1, P2, and P1+P2 variants after validating the source DLL hash
 
 The earlier `make_dee_cfg21_patches_v2.py` script creates P2+P3, P1+P2+P3, and P3-only diagnostic variants next to the supplied DLL. Only paired P2+P3 has been validated with the fixed test source.
 
-## Automated validation
+## Research and implementation automated validation
 
 ```powershell
 python .\automation\tests\test_automation.py
@@ -257,7 +300,7 @@ for tool-specific safeguards, and [the complete P2+P3 log](patch_logs/flat71_P2P
 
 ## Legal Notice
 
-This repository is an independent research project and is not affiliated with or endorsed by Dolby Laboratories. Dolby, Dolby Atmos, and Dolby Encoding Engine are trademarks or products of their respective owner.
+This product and the reverse-engineering research supporting its implementation are independent projects and are not affiliated with or endorsed by Dolby Laboratories. Dolby, Dolby Atmos, and Dolby Encoding Engine are trademarks or products of their respective owner.
 
 No proprietary Dolby software, license, or test media is granted by this project. You are responsible for complying with all applicable licenses, laws, and contractual restrictions when analyzing or modifying software.
 

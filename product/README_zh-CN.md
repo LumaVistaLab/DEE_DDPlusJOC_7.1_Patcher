@@ -4,12 +4,12 @@
 
 文件名：`dee-ddp71-atmos-wrapper.py`
 
-这是一个面向 Dolby Encoding Engine（DEE）v5.2.1 的单命令 CLI 包装器。它将本仓库已经验证的逆向工程成果转化为完整工作流，用于编码现代 Blu-ray Dolby Digital Plus with Dolby Atmos，并让用户选择以下兼容呈现编码声道：
+这是本仓库已验证逆向工程成果的派生产品，也是首个面向现代 DD+ Atmos for Blu-ray 编码、支持用户选择两种兼容呈现编码声道的 Dolby Encoding Engine（DEE）v5.2.1 单命令 CLI 封装器：
 
 - `5.1+2` / `7.1 Height`：`L R C LFE Ls Rs Lvh Rvh`（码流分析工具也可能显示 `Tfl Tfr`）。
 - 平面 `7.1`：`L R C LFE Ls Rs Lrs Rrs`（码流分析工具也可能显示 `Lb Rb`）。
 
-本产品不直接改写成品码流的编码声道标签，不依赖 Dolby Media Producer Suite v2.0 旧版制作流程，也不要求为了平面 7.1 另行制作一种特殊 ADM BWF。输入仍须是 DEE 原版 `atmos_mezz_encode_to_atmos_ddp_ec3.xml` 工作流可接受的合法 Dolby Atmos mezzanine。
+本产品将逆向成果转化为完整的端到端制作工作流。它不直接改写成品码流的编码声道标签，不要求为平面 7.1 另行制作特殊 ADM BWF，也不依赖 Dolby Media Producer Suite v2.0 旧版制作流程。输入仍须是 DEE 原版 `atmos_mezz_encode_to_atmos_ddp_ec3.xml` 工作流可接受的合法 Dolby Atmos mezzanine。
 
 > 当前版本是开发版本，只支持经过验证的 `dee_audio_filter_ddp_atmos.dll` 精确构建。原始文件 SHA-256 必须为 `3d66bcec36031fd48e6565d15f05fea656642377ca4f8c98cdce1cce8b7e95d2`。
 
@@ -209,7 +209,7 @@ python -m unittest discover -s .\tests -v
 
 2026-09-06 的特殊字符路径绝对/相对实机验证记录见 [VALIDATION_zh-CN.md](VALIDATION_zh-CN.md)。
 
-开发阶段只应修改本 `product` 目录。仓库其他目录仅作为逆向结论、样本和测试参考；`release` 是预留发布位置，不属于开发工作区。
+开发阶段只应修改本 `product` 目录。仓库其他目录仅作为逆向结论、样本和测试参考；`release` 保留最新本地打包快照，不属于开发工作区。
 
 ## 法律声明与许可证
 

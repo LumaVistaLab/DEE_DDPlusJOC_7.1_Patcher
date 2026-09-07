@@ -4,12 +4,12 @@ English | [简体中文](README_zh-CN.md)
 
 Filename: `dee-ddp71-atmos-wrapper.py`
 
-This is a single-command CLI wrapper for Dolby Encoding Engine (DEE) v5.2.1. It turns the validated reverse-engineering result in this repository into an end-to-end modern Blu-ray Dolby Digital Plus with Dolby Atmos workflow with either compatibility-presentation coded layout:
+This is the derivative product of this repository's validated reverse-engineering work. It is the first single-command Dolby Encoding Engine (DEE) v5.2.1 CLI wrapper for modern DD+ Atmos for Blu-ray encoding that lets users select either compatibility-presentation coded-channel layout:
 
 - `5.1+2` / `7.1 Height`: `L R C LFE Ls Rs Lvh Rvh` (some analyzers label the last pair `Tfl Tfr`).
 - Flat `7.1`: `L R C LFE Ls Rs Lrs Rrs` (some analyzers label the last pair `Lb Rb`).
 
-The wrapper does not relabel channels in a finished bitstream. It does not depend on the legacy Dolby Media Producer Suite v2.0 workflow, and flat 7.1 does not require a specially authored alternate ADM BWF. The input must still be a valid Dolby Atmos mezzanine accepted by the original `atmos_mezz_encode_to_atmos_ddp_ec3.xml` workflow.
+The product turns the reverse-engineering result into a complete end-to-end production workflow. It does not directly rewrite coded-channel labels in a finished bitstream, require a specially authored ADM BWF for flat 7.1, or depend on the legacy Dolby Media Producer Suite v2.0 workflow. The input must still be a valid Dolby Atmos mezzanine accepted by the original `atmos_mezz_encode_to_atmos_ddp_ec3.xml` workflow.
 
 > This is currently a development version and supports one exact verified build of `dee_audio_filter_ddp_atmos.dll`. Its original SHA-256 must be `3d66bcec36031fd48e6565d15f05fea656642377ca4f8c98cdce1cce8b7e95d2`.
 
@@ -209,7 +209,7 @@ python -m unittest discover -s .\tests -v
 
 See [VALIDATION.md](VALIDATION.md) for the 2026-09-06 absolute/relative real-encoding validation through Windows-valid special-character paths.
 
-Development changes belong only in this `product` directory. Other repository directories are read-only reverse-engineering, sample, and test references; `release` is reserved for later publishing.
+Development changes belong only in this `product` directory. Other repository directories are read-only reverse-engineering, sample, and test references; `release` retains the latest local packaged snapshot and is not a development workspace.
 
 ## Legal notice and license
 

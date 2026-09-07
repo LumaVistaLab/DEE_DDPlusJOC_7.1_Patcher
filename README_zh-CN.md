@@ -2,7 +2,36 @@
 
 语言：简体中文 | [English](README.md)
 
-这是一个面向 Dolby Encoding Engine（DEE）5.2.1 的已验证二进制补丁实现与逆向工程项目。配对的 P2+P3 补丁实现可使蓝光 Dolby Digital Plus with Dolby Atmos（DD+ JOC）采用以下平面 7.1 编码/兼容层布局：
+本仓库依然是一个面向 Dolby Encoding Engine（DEE）5.2.1 的已验证二进制补丁实现与逆向工程项目。在保留底层实现、验证证据与可复现研究链的同时，本仓库也将这些逆向成果转化为下述可实际使用的派生产品。
+
+## 逆向成果的派生产品
+
+**DD+ 7.1 Atmos Wrapper for Dolby Encoding Engine 是本仓库逆向成果转化而来的派生产品，也是首个面向现代 DD+ Atmos for Blu-ray 编码、支持用户选择两种兼容呈现编码声道的 Dolby Encoding Engine v5.2.1 封装器：**
+
+- `5.1+2` / `7.1 Height`：`L R C LFE Ls Rs Lvh Rvh`。
+- 平面 `7.1`：`L R C LFE Ls Rs Lrs Rrs`。
+
+它不直接修改成品码流的编码声道标签，不要求为平面 7.1 另行制作特殊 ADM BWF，也不依赖 Dolby Media Producer Suite v2.0 旧版制作流程。它的产品定位不是另一个单点补丁脚本，而是将已验证的逆向成果收束为可操作、可审计、可恢复的产品化制作编排器。它构建在用户合法获得的 DEE v5.2.1 之上，不是 Dolby 编码器、许可证或专有组件的替代品。
+
+从合法的 Dolby Atmos mezzanine 输入到最终 `.eb3` / `.ec3` 交付文件，Wrapper 正式接管并编排整条制作链：前置检查、精确二进制校验、可恢复备份、作业 XML 生成与参数覆盖、可选分段批处理、DEE 调用与日志保留、原始组件还原，以及平面 7.1 输出所需的 Surround EX 信令收尾。
+
+```text
+Dolby Atmos mezzanine
+  -> DD+ 7.1 Atmos Wrapper
+  -> 安全编排 DEE 5.2.1、布局选择与必要的码流收尾
+  -> Blu-ray DD+ JOC / Dolby Atmos (.eb3/.ec3)
+```
+
+产品源码、完整参数说明和开发用法见 [product/README_zh-CN.md](product/README_zh-CN.md)；最新本地打包快照及其校验文件位于 [release/](release/)。从源码查看命令行帮助：
+
+```powershell
+cd .\product
+python .\dee-ddp71-atmos-wrapper.py --help
+```
+
+## 已验证的技术基础
+
+上述派生产品建立在本仓库针对 Dolby Encoding Engine（DEE）5.2.1 完成的二进制补丁实现与逆向工程验证之上。配对的 P2+P3 补丁实现可使蓝光 Dolby Digital Plus with Dolby Atmos（DD+ JOC）采用以下平面 7.1 编码/兼容层布局：
 
 ```text
 L R C LFE Ls Rs Lrs Rrs
@@ -16,10 +45,7 @@ L R C LFE Ls Rs Tfl Tfr
 
 本项目的目标不是普通的基于声道的 E-AC-3 7.1，而是具有平面 7.1 编码布局的蓝光 DD+ JOC / Dolby Atmos 码流。
 
-本项目支持的端到端输出工作流包含两个必需阶段：先使用已验证的 P2+P3
-DLL 编码，再用仓库内置的 `DolbySurrEX-flag-patcher` 完成码流收尾。P2+P3
-本身已经生成 5.1 Dolby PLIIx 矩阵兼容内核；第二阶段负责补全其缺失的
-Surround EX 信令。
+在 Wrapper 的统一编排下，平面 7.1 输出的已验证底层实现包含两个必需阶段：先使用已验证的 P2+P3 DLL 编码，再用仓库内置的 `DolbySurrEX-flag-patcher` 完成码流收尾。P2+P3 本身已经生成 5.1 Dolby PLIIx 矩阵兼容内核；第二阶段负责补全其缺失的 Surround EX 信令。
 
 > [!WARNING]
 > 本补丁实现已在下文所列的特定 DEE 5.2.1 二进制版本及编码/解码链路上完成验证，但不宣称具备通用或生产级兼容性。请务必保留原始二进制文件。
@@ -39,7 +65,9 @@ Surround EX 信令。
 
 自动静态分析还找到了一个独立的 `0x0C / 0x0E / 0x10` 三态 channel-mode 映射，但由于 P2+P3 已达到目标，该候选未被修改或动态测试。
 
-## 正式端到端工作流
+## 已验证的底层处理链
+
+以下是 Wrapper 自动执行的平面 7.1 关键处理链，也是后文研究证据的验证对象：
 
 ```text
 ADM/DAMF 母版
@@ -126,7 +154,7 @@ LFE 低通、Surround Phase Shift 和环绕衰减开关：LFE 低通仍在内部
 说明见 [Dolby Metadata 指南](https://professionalsupport.dolby.com/s/article/A-Guide-to-Dolby-Metadata?language=en_US)
 和 [5.1 与立体声下混设置说明](https://professionalsupport.dolby.com/s/article/How-do-the-5-1-and-Stereo-downmix-settings-work?language=en_US)。
 
-## 环境要求
+## 研究与复现环境要求
 
 - 合法取得的 Dolby Encoding Engine 5.2.1 安装和有效许可证
 - 与本项目完全匹配的 `dee_audio_filter_ddp_atmos.dll`
@@ -147,21 +175,25 @@ LFE 低通、Surround Phase Shift 和环绕衰减开关：LFE 低通仍在内部
 
 ```text
 DEE_DDPlusJOC_7.1_Patcher/
-|-- patchers/                            补丁生成脚本
-|-- DolbySurrEX-flag-patcher-2966e09/   正式的 dsurexmod/CRC 收尾阶段
-|-- automation/                          隔离的构建、逆向、测试和验证脚本
-|-- patch_logs/                          保留的完整测试日志
+|-- product/                             派生 Wrapper 产品开发目录：源码、模板、工具、测试与文档
+|-- release/                             最新本地发布快照、ZIP 及校验文件
+|-- automation/                          构建、逆向、测试与验证自动化
+|-- patchers/                            历史补丁生成与诊断脚本
+|-- DolbySurrEX-flag-patcher-2966e09/   锁定版本的 dsurexmod/CRC 收尾工具参考源
 |-- example-flow/                        蓝光 DD+ Atmos 示例作业文件
+|-- patch_logs/                          保留的完整测试日志
 |-- gpt-context/                         逆向工程笔记与上下文交接文档
-|-- dll_original/                        本地原始 DLL；由 Git 忽略
-|-- dll_patched/                         本地生成的补丁 DLL；由 Git 忽略
-|-- dee_copy/                            本地 DEE 运行时副本；由 Git 忽略
-`-- results/                             本地编码测试输出
+|-- dll_original/, dll_patched/          本地原始/补丁 DLL 工作目录；由 Git 忽略
+|-- dee_copy/, results/                  本地 DEE 副本与编码测试输出；由 Git 忽略
+|-- README.md, README_zh-CN.md           仓库项目介绍、派生产品入口与研究索引
+`-- LICENSE                              仓库原创内容许可证
 ```
 
-源码分发不包含 Dolby 二进制文件、许可证和大型测试媒体。请从您自己获得授权的安装中提供这些文件。
+`product/` 是派生 Wrapper 产品的开发真源；`release/` 只保留最新本地打包快照；其余目录主要保留逆向结论、可复现证据、样例与历史工具。源码与发布包均不包含 Dolby 二进制文件、许可证和大型测试媒体；请从您自己获得授权的安装中提供。
 
-## 生成已验证的平面 7.1 补丁
+## 研究用：生成已验证的平面 7.1 补丁
+
+> 以下命令用于复现底层研究与验证；实际制作请使用 `product/dee-ddp71-atmos-wrapper.py` 统一入口。
 
 在仓库根目录运行：
 
@@ -171,7 +203,7 @@ python .\automation\build_flat71_patch.py
 
 脚本只生成已验证的配对 P2+P3 版本；它会校验源 DLL 哈希、两个位置的原始字节、PE 校验和以及最终输出哈希。已存在的输出默认不会被覆盖。
 
-## 生成旧诊断变体
+## 研究用：生成旧诊断变体
 
 在仓库根目录运行：
 
@@ -185,7 +217,7 @@ python .\patchers\make_dee_flat71_patches.py `
 
 较早的 `make_dee_cfg21_patches_v2.py` 会在传入的源 DLL 所在目录生成 P2+P3、P1+P2+P3 和仅 P3 的诊断变体。其中只有配对 P2+P3 已在当前固定测试源上验证。
 
-## 自动化验证
+## 研究与实现自动化验证
 
 ```powershell
 python .\automation\tests\test_automation.py
@@ -247,7 +279,7 @@ python .\automation\validate.py stream `
 
 ## 法律声明
 
-本仓库是独立研究项目，与 Dolby Laboratories 没有从属关系，也未获得其认可。Dolby、Dolby Atmos 和 Dolby Encoding Engine 是其相应所有者的商标或产品。
+本产品及支撑其实现的逆向工程研究均为独立项目，与 Dolby Laboratories 没有从属关系，也未获得其认可。Dolby、Dolby Atmos 和 Dolby Encoding Engine 是其相应所有者的商标或产品。
 
 本项目不授予任何 Dolby 专有软件、许可证或测试媒体。分析或修改软件时，您有责任遵守所有适用的许可证、法律和合同限制。
 
