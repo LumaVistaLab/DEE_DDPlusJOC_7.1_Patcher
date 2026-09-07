@@ -2,12 +2,12 @@
 
 These rules apply to all future development and release work in this repository.
 
-## Product version maintenance
+## Internal and product version maintenance
 
-- The agent is responsible for maintaining the product version in `product/dee-ddp71-atmos-wrapper.py`.
-- Increase the product version when development reaches an appropriate version boundary. Use semantic intent: patch for compatible fixes, minor for compatible features, and major for incompatible behavior or interface changes. Documentation-only edits normally do not require a product-version bump.
-- The product version is a development-stream identifier. A packaged release identifier may be maintained separately and does not have to match it.
-- Do not change historical validation metadata merely to make it match a newer product or release version. Update validation metadata only when the corresponding validation is actually rerun for that product state.
+- The agent is responsible for maintaining the internal version in `product/dee-ddp71-atmos-wrapper.py`.
+- Increase the internal version when development reaches an appropriate version boundary. Use semantic intent: patch for compatible fixes, minor for compatible features, and major for incompatible behavior or interface changes. Documentation-only edits normally do not require an internal-version bump.
+- The internal version identifies the development stream. The product version identifies a packaged release and does not have to match the internal version.
+- Do not change historical validation metadata merely to make it match a newer internal or product version. Update validation metadata only when the corresponding validation is actually rerun for that product state.
 
 ## Independent README maintenance
 
@@ -15,7 +15,7 @@ These rules apply to all future development and release work in this repository.
 - The English and Chinese README files inside `release/` describe the packaged release snapshot.
 - Product README files and release README files are independent documents. Neither set is subordinate to, generated from, or automatically synchronized with the other.
 - Update each set deliberately for its own context. Do not overwrite one set by copying the other without reviewing every release-specific or development-specific statement and link.
-- Record the packaged release identifier in both release README files. Do not change the embedded product version solely to match a release identifier.
+- Record the product version in both release README files. Do not change the embedded internal version solely to match a product version.
 
 ## Local release policy
 
@@ -24,7 +24,7 @@ These rules apply to all future development and release work in this repository.
 - Keep only the newest local release in `release/`. Older releases are recovered from Git history rather than retained as parallel directories or archives.
 - Before replacing an old local release, inspect Git status and ensure the old release state is recoverable from Git. Preserve unrelated or uncommitted user changes.
 - Do not use a version-only directory such as `release/v1.0-stable/`.
-- For release identifier `<version>`, use package name `dee-ddp71-atmos-wrapper-<version>` consistently:
+- For product version `<version>`, use package name `dee-ddp71-atmos-wrapper-<version>` consistently:
   - unpacked directory: `release/dee-ddp71-atmos-wrapper-<version>/`
   - archive: `release/dee-ddp71-atmos-wrapper-<version>.zip`
   - archive checksum: `release/dee-ddp71-atmos-wrapper-<version>.zip.sha256`
@@ -44,9 +44,14 @@ SHA256SUMS.txt
 templates/
   atmos_mezz_encode_to_atmos_ddp_ec3.xml
 tools/
-  patch_dsur_ex.py
-  README.md
-  README_zh-CN.md
+  DEE-staging-cleaner/
+    cleanup_dee_staging.py
+    README.md
+    README_zh-CN.md
+  DolbySurrEX-flag-patcher-2966e09/
+    patch_dsur_ex.py
+    README.md
+    README_zh-CN.md
 ```
 
 Do not include development or generated material, including:
@@ -65,13 +70,12 @@ Release README files and release notes may summarize completed validation, but m
 ## Release procedure
 
 1. Inspect Git status and the current contents of `release/`.
-2. Decide whether the product version should be increased for the accumulated development changes; update it when appropriate.
+2. Decide whether the internal version should be increased for the accumulated development changes; update it when appropriate.
 3. Run the product compilation checks and automated tests from `product/` before packaging.
 4. Remove the previous local release artifacts after confirming they are recoverable from Git.
 5. Create the correctly named release directory and copy only the approved runtime files.
-6. Maintain the release README files independently and record the release identifier in them. Update the bilingual `RELEASE_NOTES.md` for the packaged snapshot.
+6. Maintain the release README files independently and record the product version in them. Update the bilingual `RELEASE_NOTES.md` for the packaged snapshot.
 7. Scan release documentation for stale links or references to excluded development files.
 8. Generate `SHA256SUMS.txt` after all packaged files are final.
 9. Create the correctly named ZIP with the matching single top-level directory, then generate its `.zip.sha256` file.
 10. Inspect the ZIP file list, verify all per-file and archive checksums, and confirm that no excluded or proprietary files are present.
-

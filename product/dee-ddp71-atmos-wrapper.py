@@ -31,7 +31,7 @@ from typing import Iterator, Sequence
 
 
 PRODUCT_NAME = "DD+ 7.1 Atmos Wrapper for Dolby Encoding Engine"
-VERSION = "0.3.0-dev"
+INTERNAL_VERSION = "0.3.1-dev"
 PRODUCT_DIR = Path(__file__).resolve().parent
 TEMPLATE_PATH = PRODUCT_DIR / "templates" / "atmos_mezz_encode_to_atmos_ddp_ec3.xml"
 DSUR_EX_PATCHER = (
@@ -161,7 +161,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("dee", type=Path, help="DEE 5.2.1 directory, or its dee.exe path")
     parser.add_argument("input", type=Path, help="Dolby Atmos mezzanine input path")
     parser.add_argument("output", type=Path, help="output .ec3/.eb3 path, or batch naming base")
-    parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s internal version {INTERNAL_VERSION}"
+    )
 
     original = parser.add_argument_group(
         "original template parameter overrides (in XML order)",
@@ -1096,7 +1098,7 @@ def execute(args: argparse.Namespace) -> int:
     manifest: dict[str, object] = {
         "schema_version": 1,
         "product": PRODUCT_NAME,
-        "product_version": VERSION,
+        "internal_version": INTERNAL_VERSION,
         "started_at": utc_now(),
         "status": "preflight",
         "dee_directory": str(dee_dir),

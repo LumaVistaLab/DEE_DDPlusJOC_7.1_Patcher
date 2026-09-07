@@ -525,8 +525,10 @@ class WrapperTests(unittest.TestCase):
         self.assertEqual(wrapper.sha256_file(component), wrapper.SUPPORTED_ORIGINAL_SHA256)
         created = set((PRODUCT_DIR / "work" / "runs").glob("*/run.json")) - before
         self.assertEqual(len(created), 1)
-        manifest = created.pop().read_text(encoding="utf-8")
-        self.assertIn('"status": "dry-run-complete"', manifest)
+        manifest = json.loads(created.pop().read_text(encoding="utf-8"))
+        self.assertEqual(manifest["status"], "dry-run-complete")
+        self.assertEqual(manifest["internal_version"], wrapper.INTERNAL_VERSION)
+        self.assertNotIn("product_version", manifest)
 
     def test_dee_master_and_output_accept_windows_valid_special_characters(self) -> None:
         original = PRODUCT_DIR.parent / "dll_original" / wrapper.PATCHED_COMPONENT

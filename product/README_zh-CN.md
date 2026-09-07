@@ -4,7 +4,7 @@
 
 文件名：`dee-ddp71-atmos-wrapper.py`
 
-产品版本：`0.2.0-dev`
+内部版本：`0.3.1-dev`
 
 这是本仓库已验证逆向工程成果的派生产品，也是首个面向现代 DD+ Atmos for Blu-ray 编码、支持用户选择两种兼容呈现编码声道的 Dolby Encoding Engine（DEE）v5.2.1 单命令 CLI 包装器：
 
@@ -13,7 +13,7 @@
 
 本产品将逆向成果转化为完整的端到端制作工作流。它不直接改写成品码流的编码声道标签，不要求为平面 7.1 另行制作特殊 ADM BWF，也不依赖 Dolby Media Producer Suite v2.0 旧版制作流程。输入仍须是 DEE 原版 `atmos_mezz_encode_to_atmos_ddp_ec3.xml` 工作流可接受的合法 Dolby Atmos mezzanine。
 
-> 当前版本是开发版本，只支持经过验证的 `dee_audio_filter_ddp_atmos.dll` 精确构建。原始文件 SHA-256 必须为 `3d66bcec36031fd48e6565d15f05fea656642377ca4f8c98cdce1cce8b7e95d2`。
+> 当前内部版本只支持经过验证的 `dee_audio_filter_ddp_atmos.dll` 精确构建。原始文件 SHA-256 必须为 `3d66bcec36031fd48e6565d15f05fea656642377ca4f8c98cdce1cce8b7e95d2`。
 
 ## 要求
 

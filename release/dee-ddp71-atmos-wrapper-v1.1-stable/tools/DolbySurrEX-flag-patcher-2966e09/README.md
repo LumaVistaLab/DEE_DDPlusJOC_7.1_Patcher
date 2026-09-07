@@ -17,25 +17,25 @@ The script scans AC-3 core and E-AC-3 dependent/JOC frames in an interleaved Blu
 Check structure, frame counts, current signaling, and CRCs only:
 
 ```powershell
-python .\patch_dsur_ex.py --check input.eb3
+python .\tools\DolbySurrEX-flag-patcher-2966e09\patch_dsur_ex.py --check input.eb3
 ```
 
 Write a new output, setting `dsurexmod` to `2` (Dolby Surround EX) by default:
 
 ```powershell
-python .\patch_dsur_ex.py input.eb3 output.dsur-ex.eb3
+python .\tools\DolbySurrEX-flag-patcher-2966e09\patch_dsur_ex.py input.eb3 output.dsur-ex.eb3
 ```
 
 Select an explicit target:
 
 ```powershell
-python .\patch_dsur_ex.py input.eb3 output.eb3 --target 0
-python .\patch_dsur_ex.py input.eb3 output.eb3 --target 1
-python .\patch_dsur_ex.py input.eb3 output.eb3 --target 2
+python .\tools\DolbySurrEX-flag-patcher-2966e09\patch_dsur_ex.py input.eb3 output.eb3 --target 0
+python .\tools\DolbySurrEX-flag-patcher-2966e09\patch_dsur_ex.py input.eb3 output.eb3 --target 1
+python .\tools\DolbySurrEX-flag-patcher-2966e09\patch_dsur_ex.py input.eb3 output.eb3 --target 2
 ```
 
 Allowed `--target` values are `0` = not indicated, `1` = not EX, and `2` = EX. `--no-strict` skips unexpected AC-3 frames. The production wrapper does not use that option; it retains strict checking.
 
 Input and output must be different paths; the script does not patch in place. Use it only on flat-7.1 DEE output whose compatibility core has already been verified to contain the PLIIx matrix.
 
-See the product's [GNU GPL v3 license](../LICENSE).
+See the product's [GNU GPL v3 license](../../LICENSE).

@@ -6,6 +6,8 @@ Filename: `dee-ddp71-atmos-wrapper.py`
 
 Internal version: `0.3.1-dev`
 
+Product version: `v1.1-stable`
+
 This is the derivative product of this repository's validated reverse-engineering work. It is the first single-command Dolby Encoding Engine (DEE) v5.2.1 CLI wrapper for modern DD+ Atmos for Blu-ray encoding that lets users select either compatibility-presentation coded-channel layout:
 
 - `5.1+2` / `7.1 Height`: `L R C LFE Ls Rs Lvh Rvh` (some analyzers label the last pair `Tfl Tfr`).
@@ -13,7 +15,7 @@ This is the derivative product of this repository's validated reverse-engineerin
 
 The product turns the reverse-engineering result into a complete end-to-end production workflow. It does not directly rewrite coded-channel labels in a finished bitstream, require a specially authored ADM BWF for flat 7.1, or depend on the legacy Dolby Media Producer Suite v2.0 workflow. The input must still be a valid Dolby Atmos mezzanine accepted by the original `atmos_mezz_encode_to_atmos_ddp_ec3.xml` workflow.
 
-> This internal version supports one exact verified build of `dee_audio_filter_ddp_atmos.dll`. Its original SHA-256 must be `3d66bcec36031fd48e6565d15f05fea656642377ca4f8c98cdce1cce8b7e95d2`.
+> This product version supports one exact verified build of `dee_audio_filter_ddp_atmos.dll`. Its original SHA-256 must be `3d66bcec36031fd48e6565d15f05fea656642377ca4f8c98cdce1cce8b7e95d2`.
 
 ## Requirements
 
@@ -208,7 +210,7 @@ DEE 5.2.1's own plugin loader cannot initialize some audio filters when the inst
 
 The generated XML retains the complete user-selected master path, while `run.json` retains both that original master path and every requested output path. When starting DEE, the wrapper also supplies explicit `-a`, `-o`, and `--temp` options, matching the original example batch file. A master path that DEE may mishandle is exposed through a conservative 8.3 alias when available, otherwise through a temporary hard link, with a verified-size copy fallback (including across volumes). DEE writes only to wrapper-owned intermediate paths; Python then atomically publishes the finished stream to the exact requested output path. The conservative stage is removed after success or failure. These measures avoid both the plugin-loader limitation and the XML local-storage parser's truncation at the first space without changing XML parameters or segment boundaries. Component restoration and disposable-stage cleanup use bounded retries for file handles that Windows may retain briefly after an abnormal DEE exit. Staging roots left by power loss or forced termination can be force-cleared with the [DEE staging cleaner](tools/DEE-staging-cleaner/README.md); it removes all content without requiring ownership metadata.
 
-Generated job XML, logs, intermediate streams, and the run manifest are under `work/runs/<run-id>/`. Product-local `.gitignore` excludes `backups/` and `work/`.
+Generated job XML, logs, intermediate streams, and the run manifest are under `work/runs/<run-id>/`. The runtime-generated `backups/` and `work/` directories are not part of the release package.
 
 ## Independent Surround EX finalization
 
@@ -230,18 +232,11 @@ The current CLI deliberately has no controls for:
 
 These retain the existing behavior of the validated DEE Blu-ray Atmos path and the master Trim Mode Record.
 
-## Development verification
+## Release verification
 
-```powershell
-python -m py_compile .\dee-ddp71-atmos-wrapper.py `
-  .\tools\DolbySurrEX-flag-patcher-2966e09\patch_dsur_ex.py `
-  .\tools\DEE-staging-cleaner\cleanup_dee_staging.py
-python -m unittest discover -s .\tests -v
-```
+Before packaging product version `v1.1-stable`, Python compilation checks passed for the main wrapper, the independent Surround EX tool, and the DEE staging cleaner. All 27 automated wrapper tests passed on 2026-09-07. Historical source-tree records for the 2026-09-06 absolute- and relative-path real encodes remain unchanged and are not presented as a fresh real-encoding run for this product version.
 
-See [VALIDATION.md](VALIDATION.md) for the 2026-09-06 absolute/relative real-encoding validation through Windows-valid special-character paths.
-
-Development changes belong only in this `product` directory. Other repository directories are read-only reverse-engineering, sample, and test references; `release` retains the latest local packaged snapshot and is not a development workspace.
+Verify all unpacked files against `SHA256SUMS.txt`. The product version is maintained independently from the embedded internal version. See [RELEASE_NOTES.md](RELEASE_NOTES.md) for this packaged snapshot's changes and limits.
 
 ## Legal notice and license
 

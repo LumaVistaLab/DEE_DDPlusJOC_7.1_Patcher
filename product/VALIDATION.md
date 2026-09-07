@@ -1,7 +1,7 @@
 # Real encoding through special-character paths
 
 Validation date: 2026-09-06  
-Product version: `0.1.0-dev`  
+Internal version: `0.1.0-dev`
 Encoder: Dolby Encoding Engine `5.2.1-5994839`
 
 ## Scope
