@@ -19,6 +19,7 @@ import shutil
 import struct
 import subprocess
 import sys
+import tempfile
 import time
 import uuid
 import xml.etree.ElementTree as ET
@@ -30,10 +31,12 @@ from typing import Iterator, Sequence
 
 
 PRODUCT_NAME = "DD+ 7.1 Atmos Wrapper for Dolby Encoding Engine"
-VERSION = "0.2.0-dev"
+VERSION = "0.3.0-dev"
 PRODUCT_DIR = Path(__file__).resolve().parent
 TEMPLATE_PATH = PRODUCT_DIR / "templates" / "atmos_mezz_encode_to_atmos_ddp_ec3.xml"
-DSUR_EX_PATCHER = PRODUCT_DIR / "tools" / "patch_dsur_ex.py"
+DSUR_EX_PATCHER = (
+    PRODUCT_DIR / "tools" / "DolbySurrEX-flag-patcher-2966e09" / "patch_dsur_ex.py"
+)
 
 PATCHED_COMPONENT = "dee_audio_filter_ddp_atmos.dll"
 SUPPORTED_ORIGINAL_SHA256 = "3d66bcec36031fd48e6565d15f05fea656642377ca4f8c98cdce1cce8b7e95d2"
@@ -56,7 +59,8 @@ HEIGHT_TRIMS = ("-3", "-6", "-9", "-12", "auto")
 SEGMENT_POINT_RE = re.compile(r"^(\d{2,}):([0-5]\d):([0-5]\d):(\d{2})$")
 ATMOS_INFO_START_RE = re.compile(r"^\s*Start time \(in seconds\):\s*(\d+(?:\.\d+)?)\s*$", re.MULTILINE)
 SILENCE_RE = re.compile(r"^(?:\d+(?:\.\d+)?|\d+f)$")
-CONSERVATIVE_WINDOWS_PATH_RE = re.compile(r"^[A-Za-z0-9_ .:\\/()\-]+$")
+CONSERVATIVE_WINDOWS_PATH_RE = re.compile(r"^[A-Za-z0-9_~ .:\\/()\-]+$")
+CONSERVATIVE_EXTENSION_RE = re.compile(r"^\.[A-Za-z0-9]{1,16}$")
 FRAME_RATE_FRACTIONS = {
     "23.976": Fraction(24000, 1001),
     "24": Fraction(24, 1),
@@ -249,7 +253,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def resolve_dee(dee_argument: Path) -> tuple[Path, Path, Path]:
-    supplied = dee_argument.expanduser().resolve()
+    supplied = dee_argument.resolve()
     if supplied.is_dir():
         dee_dir = supplied
         dee_exe = dee_dir / "dee.exe"
@@ -386,10 +390,10 @@ def resolve_segment_first_start(args: argparse.Namespace, dee_dir: Path, input_p
 
 
 def validate_arguments(args: argparse.Namespace) -> tuple[Path, list[Path]]:
-    input_path = args.input.expanduser().resolve()
+    input_path = args.input.resolve()
     if not input_path.is_file():
         raise WrapperError(f"input file not found: {input_path}")
-    output_base = args.output.expanduser().resolve()
+    output_base = args.output.resolve()
     if output_base == input_path:
         raise WrapperError("input and output paths must be different")
 
@@ -423,7 +427,7 @@ def validate_arguments(args: argparse.Namespace) -> tuple[Path, list[Path]]:
 
 def resolve_license(args: argparse.Namespace, dee_dir: Path) -> Path | None:
     if args.license_file is not None:
-        license_path = args.license_file.expanduser().resolve()
+        license_path = args.license_file.resolve()
         if not license_path.is_file():
             raise WrapperError(f"DEE license file not found: {license_path}")
         return license_path
@@ -436,9 +440,86 @@ def needs_safe_runtime_stage(dee_dir: Path) -> bool:
     return os.name == "nt" and CONSERVATIVE_WINDOWS_PATH_RE.fullmatch(str(dee_dir)) is None
 
 
-def stage_safe_runtime(dee_dir: Path, run_dir: Path) -> tuple[Path, Path, Path, int, int]:
+def needs_safe_input_stage(input_path: Path) -> bool:
+    """Return true when an input path should not be exposed directly to DEE."""
+    return os.name == "nt" and CONSERVATIVE_WINDOWS_PATH_RE.fullmatch(str(input_path)) is None
+
+
+def windows_short_path(path: Path) -> Path | None:
+    """Return an existing path's conservative 8.3 alias when Windows provides one."""
+    if os.name != "nt":
+        return None
+    try:
+        import ctypes
+
+        get_short_path = ctypes.windll.kernel32.GetShortPathNameW
+        get_short_path.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint32]
+        get_short_path.restype = ctypes.c_uint32
+        required = get_short_path(str(path), None, 0)
+        if required == 0:
+            return None
+        buffer = ctypes.create_unicode_buffer(required)
+        written = get_short_path(str(path), buffer, required)
+        if written == 0 or written >= required:
+            return None
+        result = Path(buffer.value)
+        if CONSERVATIVE_WINDOWS_PATH_RE.fullmatch(str(result)) is None:
+            return None
+        return result
+    except (AttributeError, OSError, ValueError):
+        return None
+
+
+def create_safe_stage_root(run_id: str) -> Path:
+    """Create an ASCII/8.3-addressable root for paths consumed by legacy DEE tools."""
+    candidates = [Path(tempfile.gettempdir()), PRODUCT_DIR / "work" / "staging"]
+    if os.name == "nt" and os.environ.get("SystemRoot"):
+        candidates.append(Path(os.environ["SystemRoot"]) / "Temp")
+    failures: list[str] = []
+    for parent in dict.fromkeys(candidates):
+        stage = parent / "dee-ddp71-wrapper" / run_id
+        try:
+            stage.mkdir(parents=True, exist_ok=False)
+        except OSError as exc:
+            failures.append(f"{stage}: {exc}")
+            continue
+        if os.name != "nt" or CONSERVATIVE_WINDOWS_PATH_RE.fullmatch(str(stage)) is not None:
+            return stage
+        short_stage = windows_short_path(stage)
+        if short_stage is not None:
+            return short_stage
+        shutil.rmtree(stage, ignore_errors=True)
+        failures.append(f"{stage}: no conservative Windows short-path alias")
+    detail = "; ".join(failures)
+    raise WrapperError(f"could not create a conservative DEE staging directory: {detail}")
+
+
+def prepare_dee_input(input_path: Path, stage_root: Path) -> tuple[Path, str]:
+    """Expose a special-character master to DEE through a conservative pathname."""
+    if not needs_safe_input_stage(input_path):
+        return input_path, "direct"
+    short_input = windows_short_path(input_path)
+    if short_input is not None:
+        return short_input, "windows-short-path"
+
+    input_stage = stage_root / "input"
+    input_stage.mkdir()
+    suffix = input_path.suffix if CONSERVATIVE_EXTENSION_RE.fullmatch(input_path.suffix) else ""
+    staged_input = input_stage / f"master{suffix}"
+    try:
+        os.link(input_path, staged_input)
+        method = "hardlink"
+    except OSError:
+        shutil.copy2(input_path, staged_input)
+        method = "copy"
+    if staged_input.stat().st_size != input_path.stat().st_size:
+        raise WrapperError("staged master failed size verification")
+    return staged_input, method
+
+
+def stage_safe_runtime(dee_dir: Path, stage_root: Path) -> tuple[Path, Path, Path, int, int]:
     """Copy the executable-directory files to a conservative disposable path."""
-    stage = run_dir / "dee-runtime"
+    stage = stage_root / "runtime"
     if stage.exists():
         raise WrapperError(f"safe DEE runtime stage already exists: {stage}")
     stage.mkdir()
@@ -1002,7 +1083,6 @@ def effective_clean_temp(plan: JobPlan) -> bool:
 def execute(args: argparse.Namespace) -> int:
     dee_dir, dee_exe, component = resolve_dee(args.dee)
     input_path, outputs = validate_arguments(args)
-    resolved_first_start = resolve_segment_first_start(args, dee_dir, input_path)
     license_source = resolve_license(args, dee_dir)
     if not DSUR_EX_PATCHER.is_file():
         raise WrapperError(f"bundled independent Surround EX patcher is missing: {DSUR_EX_PATCHER}")
@@ -1010,10 +1090,8 @@ def execute(args: argparse.Namespace) -> int:
     run_id = datetime.now().strftime("%Y%m%d-%H%M%S") + f"-{uuid.uuid4().hex[:8]}"
     run_dir = PRODUCT_DIR / "work" / "runs" / run_id
     run_dir.mkdir(parents=True, exist_ok=False)
-    temp_dir = args.temp_dir.expanduser().resolve() if args.temp_dir else run_dir / "temp"
+    temp_dir = args.temp_dir.resolve() if args.temp_dir else run_dir / "temp"
     temp_dir.mkdir(parents=True, exist_ok=True)
-    plans = plan_jobs(args, input_path, outputs, run_dir, temp_dir, resolved_first_start)
-    clean_temp = effective_clean_temp(plans[0])
     manifest_path = run_dir / "run.json"
     manifest: dict[str, object] = {
         "schema_version": 1,
@@ -1026,26 +1104,33 @@ def execute(args: argparse.Namespace) -> int:
         "component": str(component),
         "input": str(input_path),
         "compatibility_layout": args.compatibility_layout,
-        "data_rate": effective_data_rate(plans[0]),
         "encoding_backend": "atmosprocessor",
         "encoder_mode": "bluray",
         "segmented_batch": args.segmented_batch,
-        "clean_temp": clean_temp,
-        "intermediate_stream_cleanup": (
-            "not-needed" if args.dry_run else ("pending" if clean_temp else "disabled")
-        ),
-        "jobs": [plan_record(plan) for plan in plans],
+        "jobs": [],
         "dry_run": args.dry_run,
     }
+    plans: list[JobPlan] = []
+    clean_temp = False
     backup: Path | None = None
     staged_license: Path | None = None
+    safe_stage_root: Path | None = None
     runtime_stage: Path | None = None
     execution_dee_dir = dee_dir
     execution_dee_exe = dee_exe
     execution_component = component
+    execution_input = input_path
+    input_path_method = "direct"
     restore_required = False
     primary_error: BaseException | None = None
     completed_plans: list[JobPlan] = []
+    probe_required = bool(
+        args.segmented_batch
+        and args.segment_start == "file_start"
+        and args.time_base == "embedded_timecode"
+        and (args.input_offset is None or args.input_offset.casefold() == "auto")
+    )
+    dee_tools_required = not args.dry_run or probe_required
 
     with installation_lock(dee_dir):
         try:
@@ -1055,7 +1140,52 @@ def execute(args: argparse.Namespace) -> int:
             manifest["original_component_sha256"] = sha256_file(component)
             # Validate the patch recipe even for 5.1+2 and dry runs.
             build_flat71_binary(component.read_bytes())
-            manifest["status"] = "prepared"
+
+            needs_runtime_stage = dee_tools_required and needs_safe_runtime_stage(dee_dir)
+            needs_input_stage = dee_tools_required and needs_safe_input_stage(input_path)
+            if needs_runtime_stage or needs_input_stage or (not args.dry_run and license_source is not None):
+                safe_stage_root = create_safe_stage_root(run_id)
+                manifest["safe_stage_root"] = str(safe_stage_root)
+
+            if needs_runtime_stage:
+                assert safe_stage_root is not None
+                (
+                    runtime_stage,
+                    execution_dee_exe,
+                    execution_component,
+                    staged_file_count,
+                    staged_total_bytes,
+                ) = stage_safe_runtime(dee_dir, safe_stage_root)
+                execution_dee_dir = runtime_stage
+                manifest["safe_runtime_stage"] = str(runtime_stage)
+                manifest["safe_runtime_file_count"] = staged_file_count
+                manifest["safe_runtime_total_bytes"] = staged_total_bytes
+                print(
+                    "DEE path needs a conservative execution stage; "
+                    f"copied {staged_file_count} runtime file(s) to {runtime_stage}."
+                )
+
+            if needs_input_stage:
+                assert safe_stage_root is not None
+                execution_input, input_path_method = prepare_dee_input(input_path, safe_stage_root)
+                manifest["dee_input_path"] = str(execution_input)
+                manifest["dee_input_path_method"] = input_path_method
+                print(f"Master path is exposed to DEE via {input_path_method}: {execution_input}")
+
+            resolved_first_start = resolve_segment_first_start(args, execution_dee_dir, execution_input)
+            plans = plan_jobs(args, input_path, outputs, run_dir, temp_dir, resolved_first_start)
+            clean_temp = effective_clean_temp(plans[0])
+            manifest.update(
+                {
+                    "data_rate": effective_data_rate(plans[0]),
+                    "clean_temp": clean_temp,
+                    "intermediate_stream_cleanup": (
+                        "not-needed" if args.dry_run else ("pending" if clean_temp else "disabled")
+                    ),
+                    "jobs": [plan_record(plan) for plan in plans],
+                    "status": "prepared",
+                }
+            )
             manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
             print(f"Run directory: {run_dir}")
@@ -1066,28 +1196,12 @@ def execute(args: argparse.Namespace) -> int:
                 print("Dry run complete; DEE was not patched or started.")
                 return 0
 
-            if needs_safe_runtime_stage(dee_dir):
-                (
-                    runtime_stage,
-                    execution_dee_exe,
-                    execution_component,
-                    staged_file_count,
-                    staged_total_bytes,
-                ) = stage_safe_runtime(dee_dir, run_dir)
-                execution_dee_dir = runtime_stage
-                manifest["safe_runtime_stage"] = str(runtime_stage)
-                manifest["safe_runtime_file_count"] = staged_file_count
-                manifest["safe_runtime_total_bytes"] = staged_total_bytes
-                print(
-                    "DEE path needs a conservative execution stage; "
-                    f"copied {staged_file_count} runtime file(s) to {runtime_stage}."
-                )
-
             if license_source is not None:
                 # DEE 5.2.1 cannot open a license whose own pathname contains
-                # some otherwise Windows-valid characters. Stage the bytes in
-                # the wrapper's conservative run path, then pass -l explicitly.
-                staged_license = run_dir / "dee-license.lic"
+                # some otherwise Windows-valid characters. Stage the bytes in a
+                # conservative path, then pass -l explicitly.
+                assert safe_stage_root is not None
+                staged_license = safe_stage_root / "license.lic"
                 shutil.copy2(license_source, staged_license)
                 if sha256_file(staged_license) != sha256_file(license_source):
                     raise WrapperError("staged DEE license failed verification")
@@ -1113,15 +1227,15 @@ def execute(args: argparse.Namespace) -> int:
                     command.extend(["--license-file", str(staged_license)])
                 # Match the original DEE example-flow invocation. DEE 5.2.1's
                 # XML local-storage parser can truncate a path at its first
-                # space, while the corresponding quoted CLI overrides retain
-                # the complete path. The XML remains fully populated as the
-                # auditable job definition; these options make it executable.
+                # space. CLI overrides select the complete path or its safe
+                # compatibility alias. The XML remains fully populated as the
+                # auditable job definition.
                 command.extend(
                     [
                         "-x",
                         str(plan.xml_path),
                         "-a",
-                        str(input_path),
+                        str(execution_input),
                         "-o",
                         str(plan.encoded_output),
                         "--temp",
@@ -1167,18 +1281,24 @@ def execute(args: argparse.Namespace) -> int:
                     manifest["restore_error"] = f"{type(restore_error).__name__}: {restore_error}"
                     if primary_error is not None:
                         print(f"CRITICAL: DEE restoration also failed: {restore_error}", file=sys.stderr)
-            if staged_license is not None and staged_license.exists():
+            if safe_stage_root is None and staged_license is not None and staged_license.exists():
                 try:
                     remove_path_with_retries(staged_license)
                     manifest["license_stage_removed"] = True
                 except OSError as license_cleanup_error:
                     manifest["license_cleanup_warning"] = str(license_cleanup_error)
-            if runtime_stage is not None and runtime_stage.exists():
+            if safe_stage_root is not None and safe_stage_root.exists():
                 try:
-                    remove_path_with_retries(runtime_stage, recursive=True)
-                    manifest["safe_runtime_stage_removed"] = True
-                except OSError as runtime_cleanup_error:
-                    manifest["runtime_cleanup_warning"] = str(runtime_cleanup_error)
+                    remove_path_with_retries(safe_stage_root, recursive=True)
+                    manifest["safe_stage_root_removed"] = True
+                    if runtime_stage is not None:
+                        manifest["safe_runtime_stage_removed"] = True
+                    if input_path_method in ("hardlink", "copy"):
+                        manifest["safe_input_stage_removed"] = True
+                    if staged_license is not None:
+                        manifest["license_stage_removed"] = True
+                except OSError as stage_cleanup_error:
+                    manifest["safe_stage_cleanup_warning"] = str(stage_cleanup_error)
             if clean_temp and not args.dry_run and (
                 args.segmented_batch or primary_error is not None or restore_failure is not None
             ):

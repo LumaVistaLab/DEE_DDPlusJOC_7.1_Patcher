@@ -32,6 +32,8 @@
 python .\dee-ddp71-atmos-wrapper.py <DEE路径或dee.exe> <输入> <输出> [覆盖参数]
 ```
 
+三个位置参数都支持含 Windows 合法文件名字符的相对或绝对路径，包括 Unicode、空格及 shell 元字符。请按照调用 shell 的规则引用或转义各参数，确保包装器收到未经改变的路径；Windows 自身禁止的字符和名称不属于有效路径。
+
 查看内置帮助：
 
 ```powershell
@@ -202,21 +204,21 @@ python .\dee-ddp71-atmos-wrapper.py `
 
 `5.1+2` 不安装任何 DEE 补丁。`flat-7.1` 才会原子安装 P2+P3 成对补丁；全部 DEE 作业结束、失败或被正常中断时，包装器都会从已验证备份自动还原并校验原始哈希。若上次进程在断电或强制终止下没有机会执行 `finally`，下次启动在发现精确的已知补丁哈希且备份有效时会先恢复原版。任何未知二进制哈希都会被拒绝，不会盲目覆盖。
 
-DEE 5.2.1 自身的插件加载器在安装路径含部分 Windows 合法 Unicode 或标点符号时无法初始化若干音频滤镜。包装器检测到这类路径后，会把可执行目录中的运行时文件复制到本次运行目录下的保守临时路径；只补丁并执行这个临时副本，随后还原其 DLL 并删除临时副本。用户提供的特殊字符 DEE 包仍保留在原路径，在该兼容模式下从不被补丁。
+DEE 5.2.1 自身的插件加载器在安装路径含部分 Windows 合法 Unicode 或标点符号时无法初始化若干音频滤镜。包装器检测到这类路径后，会把可执行目录中的运行时文件复制到独立位置的保守临时目录；只补丁并执行这个临时副本，随后还原其 DLL 并删除临时副本。用户提供的特殊字符 DEE 包仍保留在原路径，在该兼容模式下从不被补丁。
 
-生成的 XML 始终记录完整输入、输出和临时目录；实际启动 DEE 时，包装器还会像原版示例批处理一样显式传入 `-a`、`-o` 与 `--temp`。这是为绕过 DEE 5.2.1 XML 本地存储解析器对含空格路径的截断，不改变 XML 参数或分段边界。DEE 异常退出后，组件还原和临时运行时删除都会对 Windows 短暂占用的文件句柄进行有限重试。
+生成的 XML 会保留用户选择的完整母带路径，`run.json` 则同时保留该原始母带路径和每个请求的输出路径；实际启动 DEE 时，包装器还会像原版示例批处理一样显式传入 `-a`、`-o` 与 `--temp`。对于 DEE 可能无法处理的母带路径，包装器优先使用保守的 Windows 8.3 别名；别名不可用时创建临时硬链接，再回退为经过大小校验的副本（包括跨卷情况）。DEE 只写入包装器所有的中间路径，Python 随后把成品原子发布到用户指定的准确输出路径。无论成功或失败，保守暂存区都会删除。这些措施同时绕过插件加载器限制和 XML 本地存储解析器在首个空格处截断路径的问题，不改变 XML 参数或分段边界。DEE 异常退出后，组件还原和临时暂存区删除都会对 Windows 短暂占用的文件句柄进行有限重试。断电或强制终止遗留的暂存根目录可使用 [DEE 暂存区清理工具](tools/DEE-staging-cleaner/README_zh-CN.md)强制清空；工具无需所有权元数据，会删除其中全部内容。
 
 作业 XML、日志、中间码流及运行清单位于 `work/runs/<运行标识>/`。`backups/` 与 `work/` 已被产品自己的 `.gitignore` 排除。
 
 ## Surround EX 独立收尾
 
-当且仅当选择 `flat-7.1`，主线会在 DEE 原版组件已经恢复后，以独立进程调用 [tools/patch_dsur_ex.py](tools/patch_dsur_ex.py)。它只设置 AC-3 核心的 `dsurexmod=2` 并重算对应 CRC，不修改 dependent/JOC 帧，也不承担平面 7.1 声道布局的生成。
+当且仅当选择 `flat-7.1`，主线会在 DEE 原版组件已经恢复后，以独立进程调用 [patch_dsur_ex.py](tools/DolbySurrEX-flag-patcher-2966e09/patch_dsur_ex.py)。它只设置 AC-3 核心的 `dsurexmod=2` 并重算对应 CRC，不修改 dependent/JOC 帧，也不承担平面 7.1 声道布局的生成。
 
 该脚本保持独立，便于以后单独更新和审计。来源与固定版本：
 
 - 项目：[LumaVistaLab/DolbySurrEX-flag-patcher](https://github.com/LumaVistaLab/DolbySurrEX-flag-patcher)
 - commit：`2966e09`（本仓库参考目录名 `DolbySurrEX-flag-patcher-2966e09`）
-- 独立说明：[中文](tools/README_zh-CN.md) / [English](tools/README.md)
+- 独立说明：[中文](tools/DolbySurrEX-flag-patcher-2966e09/README_zh-CN.md) / [English](tools/DolbySurrEX-flag-patcher-2966e09/README.md)
 
 ## 第三类：暂不支持
 
@@ -231,7 +233,9 @@ DEE 5.2.1 自身的插件加载器在安装路径含部分 Windows 合法 Unicod
 ## 开发验证
 
 ```powershell
-python -m py_compile .\dee-ddp71-atmos-wrapper.py .\tools\patch_dsur_ex.py
+python -m py_compile .\dee-ddp71-atmos-wrapper.py `
+  .\tools\DolbySurrEX-flag-patcher-2966e09\patch_dsur_ex.py `
+  .\tools\DEE-staging-cleaner\cleanup_dee_staging.py
 python -m unittest discover -s .\tests -v
 ```
 

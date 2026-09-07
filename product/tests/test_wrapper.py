@@ -22,6 +22,8 @@ wrapper = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = wrapper
 SPEC.loader.exec_module(wrapper)
 
+CLEANER_PATH = PRODUCT_DIR / "tools" / "DEE-staging-cleaner" / "cleanup_dee_staging.py"
+
 
 class WrapperTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -29,18 +31,20 @@ class WrapperTests(unittest.TestCase):
         self.root.mkdir(parents=True)
         self.input = self.root / "master.wav"
         self.input.write_bytes(b"test-placeholder")
+        self.extra_runtimes: list[Path] = []
         runs_root = PRODUCT_DIR / "work" / "runs"
         self.runs_before = set(runs_root.iterdir()) if runs_root.is_dir() else set()
 
     def tearDown(self) -> None:
-        runtime = (self.root / "runtime").resolve()
-        identity = hashlib.sha256(os.path.normcase(str(runtime)).encode("utf-8")).hexdigest()[:20]
-        generated_backup = PRODUCT_DIR / "backups" / identity
-        if generated_backup.is_dir():
-            shutil.rmtree(generated_backup)
-        generated_lock = PRODUCT_DIR / "backups" / ".locks" / f"{identity}.lock"
-        if generated_lock.is_file():
-            generated_lock.unlink()
+        runtimes = [(self.root / "runtime").resolve(), *self.extra_runtimes]
+        for runtime in runtimes:
+            identity = hashlib.sha256(os.path.normcase(str(runtime)).encode("utf-8")).hexdigest()[:20]
+            generated_backup = PRODUCT_DIR / "backups" / identity
+            if generated_backup.is_dir():
+                shutil.rmtree(generated_backup)
+            generated_lock = PRODUCT_DIR / "backups" / ".locks" / f"{identity}.lock"
+            if generated_lock.is_file():
+                generated_lock.unlink()
         runs_root = PRODUCT_DIR / "work" / "runs"
         if runs_root.is_dir():
             for run_dir in set(runs_root.iterdir()) - self.runs_before:
@@ -344,6 +348,89 @@ class WrapperTests(unittest.TestCase):
         with self.assertRaisesRegex(wrapper.WrapperError, "timecode-frame-rate"):
             wrapper.validate_arguments(args)
 
+    def test_leading_tilde_is_preserved_as_a_literal_path_character(self) -> None:
+        runtime = self.root / "~DEE"
+        runtime.mkdir()
+        (runtime / "dee.exe").write_bytes(b"placeholder")
+        (runtime / wrapper.PATCHED_COMPONENT).write_bytes(b"placeholder")
+        input_path = self.root / "~master.wav"
+        input_path.write_bytes(b"placeholder")
+        previous_cwd = Path.cwd()
+        try:
+            os.chdir(self.root)
+            args = wrapper.build_parser().parse_args(["~DEE", "~master.wav", "~output.eb3"])
+            resolved_runtime, _, _ = wrapper.resolve_dee(args.dee)
+            resolved_input, outputs = wrapper.validate_arguments(args)
+        finally:
+            os.chdir(previous_cwd)
+        self.assertEqual(resolved_runtime, runtime.resolve())
+        self.assertEqual(resolved_input, input_path.resolve())
+        self.assertEqual(outputs, [(self.root / "~output.eb3").resolve()])
+
+    def test_special_character_input_and_output_fallbacks_need_no_shell(self) -> None:
+        special_dir = self.root / "路径 !#$%&'()+,-.;=@[]^_`{}~"
+        special_dir.mkdir()
+        special_input = special_dir / "母带 !#$%&'()+,-.;=@[]^_`{}~.wav"
+        special_input.write_bytes(b"master")
+        stage_root = self.root / "safe-stage"
+        stage_root.mkdir()
+        with mock.patch.object(wrapper, "windows_short_path", return_value=None):
+            dee_input, method = wrapper.prepare_dee_input(special_input, stage_root)
+        self.assertIn(method, ("hardlink", "copy"))
+        self.assertEqual(dee_input.read_bytes(), b"master")
+        self.assertIsNotNone(wrapper.CONSERVATIVE_WINDOWS_PATH_RE.fullmatch(str(dee_input)))
+
+        requested_output = special_dir / "输出 !#$%&'()+,-.;=@[]^_`{}~.eb3"
+        encoded = self.root / "encoded.eb3"
+        encoded.write_bytes(b"encoded")
+        wrapper.publish(encoded, requested_output, overwrite=False)
+        self.assertEqual(requested_output.read_bytes(), b"encoded")
+
+    def test_manual_stage_cleaner_force_clears_the_entire_staging_root(self) -> None:
+        staging_root = self.root / "manual-temp" / "dee-ddp71-wrapper"
+        arbitrary_stage = staging_root / "unmarked-or-incomplete-run" / "input"
+        arbitrary_stage.mkdir(parents=True)
+        (arbitrary_stage / "master.wav").write_bytes(b"temporary")
+        listing = subprocess.run(
+            [sys.executable, str(CLEANER_PATH), "--staging-root", str(staging_root), "--list"],
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
+        self.assertEqual(listing.returncode, 0, listing.stdout)
+        self.assertIn("unmarked-or-incomplete-run", listing.stdout)
+        self.assertTrue(staging_root.is_dir())
+
+        forced = subprocess.run(
+            [sys.executable, str(CLEANER_PATH), "--staging-root", str(staging_root)],
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
+        self.assertEqual(forced.returncode, 0, forced.stdout)
+        self.assertIn("[cleared]", forced.stdout)
+        self.assertFalse(staging_root.exists())
+
+        invalid_root = self.root / "not-a-wrapper-stage"
+        invalid_root.mkdir()
+        rejected = subprocess.run(
+            [sys.executable, str(CLEANER_PATH), "--staging-root", str(invalid_root)],
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
+        self.assertEqual(rejected.returncode, 2, rejected.stdout)
+        self.assertTrue(invalid_root.is_dir())
+
     def test_validated_patch_matches_known_hash_when_research_fixture_exists(self) -> None:
         original = PRODUCT_DIR.parent / "dll_original" / wrapper.PATCHED_COMPONENT
         if not original.is_file():
@@ -440,6 +527,63 @@ class WrapperTests(unittest.TestCase):
         self.assertEqual(len(created), 1)
         manifest = created.pop().read_text(encoding="utf-8")
         self.assertIn('"status": "dry-run-complete"', manifest)
+
+    def test_dee_master_and_output_accept_windows_valid_special_characters(self) -> None:
+        original = PRODUCT_DIR.parent / "dll_original" / wrapper.PATCHED_COMPONENT
+        if not original.is_file():
+            self.skipTest("repository-only proprietary test fixture is absent")
+        special_root = self.root / "路径 !#$%&'()+,-.;=@[]^_`{}~"
+        runtime = (special_root / "DEE !#$%&'()+,-.;=@[]^_`{}~").resolve()
+        runtime.mkdir(parents=True)
+        self.extra_runtimes.append(runtime)
+        (runtime / "dee.exe").write_bytes(b"simulated DEE placeholder")
+        component = runtime / wrapper.PATCHED_COMPONENT
+        shutil.copy2(original, component)
+        special_input = special_root / "母带 !#$%&'()+,-.;=@[]^_`{}~.wav"
+        special_input.write_bytes(b"special-path master")
+        output = special_root / "输出 !#$%&'()+,-.;=@[]^_`{}~.eb3"
+        args = wrapper.build_parser().parse_args([str(runtime), str(special_input), str(output)])
+
+        def simulated_run_logged(command, cwd, log_path, label):
+            self.assertTrue(label.startswith("DEE job"))
+            self.assertNotEqual(cwd, runtime)
+            self.assertIsNotNone(wrapper.CONSERVATIVE_WINDOWS_PATH_RE.fullmatch(str(cwd)))
+            self.assertEqual(wrapper.sha256_file(cwd / wrapper.PATCHED_COMPONENT), wrapper.SUPPORTED_ORIGINAL_SHA256)
+            command = list(command)
+            dee_input = Path(command[command.index("-a") + 1])
+            self.assertNotEqual(dee_input, special_input)
+            self.assertIsNotNone(wrapper.CONSERVATIVE_WINDOWS_PATH_RE.fullmatch(str(dee_input)))
+            self.assertEqual(dee_input.read_bytes(), special_input.read_bytes())
+            job_root = ET.parse(Path(command[command.index("-x") + 1])).getroot()
+            self.assertEqual(
+                Path(job_root.findtext("./input/audio/atmos_mezz/storage/local/path"))
+                / job_root.findtext("./input/audio/atmos_mezz/file_name"),
+                special_input,
+            )
+            Path(command[command.index("-o") + 1]).write_bytes(b"encoded through safe paths")
+            log_path.write_text("simulated DEE success\n", encoding="utf-8")
+
+        # Exercise the hard-link/copy fallback used when an NTFS volume has no
+        # 8.3 alias for the special-character master.
+        with (
+            mock.patch.object(wrapper, "windows_short_path", return_value=None),
+            mock.patch.object(wrapper, "run_logged", side_effect=simulated_run_logged),
+        ):
+            self.assertEqual(wrapper.execute(args), 0)
+
+        self.assertEqual(output.read_bytes(), b"encoded through safe paths")
+        self.assertEqual(wrapper.sha256_file(component), wrapper.SUPPORTED_ORIGINAL_SHA256)
+        runs_root = PRODUCT_DIR / "work" / "runs"
+        created = set(runs_root.iterdir()) - self.runs_before
+        self.assertEqual(len(created), 1)
+        manifest = json.loads((created.pop() / "run.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["input"], str(special_input))
+        self.assertEqual(manifest["outputs"][0]["path"], str(output))
+        self.assertIn(manifest["dee_input_path_method"], ("hardlink", "copy"))
+        self.assertTrue(manifest["safe_runtime_stage_removed"])
+        self.assertTrue(manifest["safe_input_stage_removed"])
+        self.assertTrue(manifest["safe_stage_root_removed"])
+        self.assertFalse(Path(manifest["safe_stage_root"]).exists())
 
     def test_simulated_flat71_complete_flow_patches_then_restores_before_ex(self) -> None:
         original = PRODUCT_DIR.parent / "dll_original" / wrapper.PATCHED_COMPONENT

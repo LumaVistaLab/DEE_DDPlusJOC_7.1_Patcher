@@ -17,25 +17,25 @@
 只检查结构、帧计数、现有标志和 CRC：
 
 ```powershell
-python .\patch_dsur_ex.py --check input.eb3
+python .\tools\DolbySurrEX-flag-patcher-2966e09\patch_dsur_ex.py --check input.eb3
 ```
 
 写入新的输出，默认将 `dsurexmod` 设为 `2`（Dolby Surround EX）：
 
 ```powershell
-python .\patch_dsur_ex.py input.eb3 output.dsur-ex.eb3
+python .\tools\DolbySurrEX-flag-patcher-2966e09\patch_dsur_ex.py input.eb3 output.dsur-ex.eb3
 ```
 
 显式选择目标值：
 
 ```powershell
-python .\patch_dsur_ex.py input.eb3 output.eb3 --target 0
-python .\patch_dsur_ex.py input.eb3 output.eb3 --target 1
-python .\patch_dsur_ex.py input.eb3 output.eb3 --target 2
+python .\tools\DolbySurrEX-flag-patcher-2966e09\patch_dsur_ex.py input.eb3 output.eb3 --target 0
+python .\tools\DolbySurrEX-flag-patcher-2966e09\patch_dsur_ex.py input.eb3 output.eb3 --target 1
+python .\tools\DolbySurrEX-flag-patcher-2966e09\patch_dsur_ex.py input.eb3 output.eb3 --target 2
 ```
 
 `--target` 允许值：`0` = not indicated，`1` = not EX，`2` = EX。`--no-strict` 会跳过不符合预期的 AC-3 帧；正式包装器不使用该选项，而是保留严格检查。
 
 输入和输出必须是不同路径。脚本不会原地覆盖输入。只应对已经确认含有 PLIIx 矩阵兼容核心的平面 7.1 DEE 输出使用它。
 
-许可证见产品的 [GNU GPL v3 许可证](../LICENSE)。
+许可证见产品的 [GNU GPL v3 许可证](../../LICENSE)。

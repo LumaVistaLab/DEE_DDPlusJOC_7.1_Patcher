@@ -32,6 +32,8 @@ This version has no multi-step subcommands. One invocation takes the DEE path, i
 python .\dee-ddp71-atmos-wrapper.py <DEE-directory-or-dee.exe> <input> <output> [overrides]
 ```
 
+All three positional paths accept relative or absolute pathnames containing Windows-valid filename characters, including Unicode, spaces, and shell metacharacters. Quote or escape each argument according to the calling shell so that the wrapper receives it unchanged. Characters and names that Windows itself prohibits are not valid paths.
+
 Show built-in help:
 
 ```powershell
@@ -202,21 +204,21 @@ Before any potentially patched binary is changed, every run:
 
 `5.1+2` never installs a DEE patch. `flat-7.1` atomically installs the paired P2+P3 patch. After all DEE jobs complete, fail, or are normally interrupted, the original component is restored from the verified backup and its hash is checked. If power loss or forced process termination prevented `finally` from running, a later invocation detects the exact known patched hash and restores it before proceeding, provided the verified backup exists. Unknown component hashes are rejected rather than overwritten.
 
-DEE 5.2.1's own plugin loader cannot initialize some audio filters when the installation pathname contains otherwise Windows-valid Unicode or punctuation. When such a path is detected, the wrapper copies the executable-directory runtime files to a conservative disposable directory under the current run, patches and executes only that stage, restores its DLL, and removes the stage afterward. The user-supplied DEE package remains at the requested special-character path and is never patched in this compatibility mode.
+DEE 5.2.1's own plugin loader cannot initialize some audio filters when the installation pathname contains otherwise Windows-valid Unicode or punctuation. When such a path is detected, the wrapper copies the executable-directory runtime files to an independently located conservative disposable directory, patches and executes only that stage, restores its DLL, and removes the stage afterward. The user-supplied DEE package remains at the requested special-character path and is never patched in this compatibility mode.
 
-The generated XML always records the complete input, output, and temporary paths. When starting DEE, the wrapper also supplies explicit `-a`, `-o`, and `--temp` options, matching the original example batch file. This avoids DEE 5.2.1's XML local-storage parser truncating a path at its first space without changing XML parameters or segment boundaries. Component restoration and disposable-runtime cleanup use bounded retries for file handles that Windows may retain briefly after an abnormal DEE exit.
+The generated XML retains the complete user-selected master path, while `run.json` retains both that original master path and every requested output path. When starting DEE, the wrapper also supplies explicit `-a`, `-o`, and `--temp` options, matching the original example batch file. A master path that DEE may mishandle is exposed through a conservative 8.3 alias when available, otherwise through a temporary hard link, with a verified-size copy fallback (including across volumes). DEE writes only to wrapper-owned intermediate paths; Python then atomically publishes the finished stream to the exact requested output path. The conservative stage is removed after success or failure. These measures avoid both the plugin-loader limitation and the XML local-storage parser's truncation at the first space without changing XML parameters or segment boundaries. Component restoration and disposable-stage cleanup use bounded retries for file handles that Windows may retain briefly after an abnormal DEE exit. Staging roots left by power loss or forced termination can be force-cleared with the [DEE staging cleaner](tools/DEE-staging-cleaner/README.md); it removes all content without requiring ownership metadata.
 
 Generated job XML, logs, intermediate streams, and the run manifest are under `work/runs/<run-id>/`. Product-local `.gitignore` excludes `backups/` and `work/`.
 
 ## Independent Surround EX finalization
 
-If and only if `flat-7.1` is selected, the main workflow invokes [tools/patch_dsur_ex.py](tools/patch_dsur_ex.py) as a separate process after the original DEE component has already been restored. The tool only sets `dsurexmod=2` in the AC-3 core and recalculates the affected CRC values. It does not change dependent/JOC frames and does not create the flat-7.1 layout.
+If and only if `flat-7.1` is selected, the main workflow invokes [patch_dsur_ex.py](tools/DolbySurrEX-flag-patcher-2966e09/patch_dsur_ex.py) as a separate process after the original DEE component has already been restored. The tool only sets `dsurexmod=2` in the AC-3 core and recalculates the affected CRC values. It does not change dependent/JOC frames and does not create the flat-7.1 layout.
 
 The script remains independent for future updates and auditing. Pinned source:
 
 - Project: [LumaVistaLab/DolbySurrEX-flag-patcher](https://github.com/LumaVistaLab/DolbySurrEX-flag-patcher)
 - Commit: `2966e09` (the repository reference directory is `DolbySurrEX-flag-patcher-2966e09`)
-- Separate guide: [English](tools/README.md) / [中文](tools/README_zh-CN.md)
+- Separate guide: [English](tools/DolbySurrEX-flag-patcher-2966e09/README.md) / [中文](tools/DolbySurrEX-flag-patcher-2966e09/README_zh-CN.md)
 
 ## Category 3: temporarily unsupported
 
@@ -231,7 +233,9 @@ These retain the existing behavior of the validated DEE Blu-ray Atmos path and t
 ## Development verification
 
 ```powershell
-python -m py_compile .\dee-ddp71-atmos-wrapper.py .\tools\patch_dsur_ex.py
+python -m py_compile .\dee-ddp71-atmos-wrapper.py `
+  .\tools\DolbySurrEX-flag-patcher-2966e09\patch_dsur_ex.py `
+  .\tools\DEE-staging-cleaner\cleanup_dee_staging.py
 python -m unittest discover -s .\tests -v
 ```
 
