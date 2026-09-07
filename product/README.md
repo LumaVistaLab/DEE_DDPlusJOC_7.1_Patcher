@@ -4,7 +4,7 @@ English | [简体中文](README_zh-CN.md)
 
 Filename: `dee-ddp71-atmos-wrapper.py`
 
-Product version: `0.1.1-dev`
+Product version: `0.1.2-dev`
 
 This is the derivative product of this repository's validated reverse-engineering work. It is the first single-command Dolby Encoding Engine (DEE) v5.2.1 CLI wrapper for modern DD+ Atmos for Blu-ray encoding that lets users select either compatibility-presentation coded-channel layout:
 
@@ -75,20 +75,20 @@ python .\dee-ddp71-atmos-wrapper.py `
   --dry-run
 ```
 
-## Fixed behavior and wrapper defaults
+## Template defaults and fixed wrapper behavior
 
 - `<encoding_backend>atmosprocessor</encoding_backend>` is fixed and cannot be overridden.
 - `<encoder_mode>bluray</encoder_mode>` is fixed and cannot be overridden.
-- The wrapper default for `<data_rate>` is `1152`; the user may override it.
-- For `flat-7.1`, the wrapper default for `<preferred_downmix_mode>` is `ltrt`; the user may override it with `loro`.
-- For `5.1+2`, an omitted `<preferred_downmix_mode>` retains the original template value, `loro`.
-- Apart from those rules, omitted values retain the bundled original `atmos_mezz_encode_to_atmos_ddp_ec3.xml` values.
+- Defaults for XML parameters come from `templates/atmos_mezz_encode_to_atmos_ddp_ec3.xml`, so they can be customized in one place. CLI options override those template values for the current run.
+- The bundled template sets `<data_rate>` to `1152`.
+- The bundled template sets `<preferred_downmix_mode>` to `loro`. For `5.1+2`, that value is retained when no CLI override is supplied; for `flat-7.1`, wrapper switching logic selects `ltrt`. An explicit CLI value wins in either layout.
+- The compatibility-layout switch, generated paths, fixed Blu-ray backend/mode, and other behavior that is not an XML parameter remain implemented by the wrapper.
 
 ## Category 1: original XML overrides
 
 The options are listed in original XML order. Every item is optional.
 
-| CLI option | XML parameter | Accepted input | Original/wrapper behavior |
+| CLI option | XML parameter | Accepted input | Bundled template/wrapper behavior |
 | --- | --- | --- | --- |
 | `--input-timecode-frame-rate` | input `<timecode_frame_rate>` | `not_indicated`, `23.976`, `24`, `25`, `29.97`, `30`, `48`, `50`, `59.94`, `60` | `not_indicated` |
 | `--input-offset` | `<offset>` | `auto`, `HH:MM:SS:FF`, `HH:MM:SS.xx`, or decimal seconds | `auto` |
@@ -96,7 +96,7 @@ The options are listed in original XML order. Every item is optional.
 | `--metering-mode` | `<metering_mode>` | `1770-4`, `1770-3`, `1770-2`, `1770-1`, `LeqA` | `1770-4` |
 | `--dialogue-intelligence` | `<dialogue_intelligence>` | `true`, `false` | `true` |
 | `--speech-threshold` | `<speech_threshold>` | integer `0` through `100` | `15` |
-| `--data-rate` | `<data_rate>` | `1152`, `1280`, `1408`, `1512`, `1536`, `1664` | wrapper default `1152` |
+| `--data-rate` | `<data_rate>` | `1152`, `1280`, `1408`, `1512`, `1536`, `1664` | bundled template value `1152` |
 | `--timecode-frame-rate` | filter `<timecode_frame_rate>` | `not_indicated`, `23.976`, `24`, `25`, `29.97`, `30`, `48`, `50`, `59.94`, `60` | `not_indicated` |
 | `--start` | `<start>` | `first_frame_of_action`, timecode, decimal seconds, or video-frame number | `first_frame_of_action`; incompatible with segmented batch mode |
 | `--end` | `<end>` | `end_of_file`, timecode, decimal seconds, or video-frame number | `end_of_file`; incompatible with segmented batch mode |

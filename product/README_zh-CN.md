@@ -4,7 +4,7 @@
 
 文件名：`dee-ddp71-atmos-wrapper.py`
 
-产品版本：`0.1.1-dev`
+产品版本：`0.1.2-dev`
 
 这是本仓库已验证逆向工程成果的派生产品，也是首个面向现代 DD+ Atmos for Blu-ray 编码、支持用户选择两种兼容呈现编码声道的 Dolby Encoding Engine（DEE）v5.2.1 单命令 CLI 封装器：
 
@@ -75,20 +75,20 @@ python .\dee-ddp71-atmos-wrapper.py `
   --dry-run
 ```
 
-## 固定行为与默认覆盖
+## 模板默认值与包装器固定行为
 
 - `<encoding_backend>atmosprocessor</encoding_backend>` 固定，不提供覆盖入口。
 - `<encoder_mode>bluray</encoder_mode>` 固定，不提供覆盖入口。
-- `<data_rate>` 的包装器默认值为 `1152`，可由用户覆盖。
-- 选择 `flat-7.1` 时，`<preferred_downmix_mode>` 的包装器默认值为 `ltrt`，可继续覆盖为 `loro`。
-- 选择 `5.1+2` 时，未覆盖的 `<preferred_downmix_mode>` 复用原版模板的 `loro`。
-- 除以上规则外，未提供的参数都复用随产品保存的原版 `atmos_mezz_encode_to_atmos_ddp_ec3.xml` 参数值。
+- XML 参数的默认值统一来自 `templates/atmos_mezz_encode_to_atmos_ddp_ec3.xml`，方便集中定制；命令行参数只覆盖本次运行使用的模板值。
+- 随附模板把 `<data_rate>` 设为 `1152`。
+- 随附模板把 `<preferred_downmix_mode>` 设为 `loro`。未提供命令行覆盖时，`5.1+2` 保留该值，`flat-7.1` 则由包装器切换逻辑选用 `ltrt`；两种布局下的显式命令行值都具有最高优先级。
+- 兼容布局切换、动态生成的路径、固定的 Blu-ray 后端/模式及其他非 XML 参数行为仍封装在包装器本体中。
 
 ## 第一类：原版 XML 参数覆盖
 
 以下参数按原版 XML 顺序列出。所有项目都是可选覆盖。
 
-| CLI 参数 | XML 参数 | 允许输入 | 原版值/包装器行为 |
+| CLI 参数 | XML 参数 | 允许输入 | 随附模板值/包装器行为 |
 | --- | --- | --- | --- |
 | `--input-timecode-frame-rate` | 输入 `<timecode_frame_rate>` | `not_indicated`, `23.976`, `24`, `25`, `29.97`, `30`, `48`, `50`, `59.94`, `60` | `not_indicated` |
 | `--input-offset` | `<offset>` | `auto`、`HH:MM:SS:FF`、`HH:MM:SS.xx` 或十进制秒 | `auto` |
@@ -96,7 +96,7 @@ python .\dee-ddp71-atmos-wrapper.py `
 | `--metering-mode` | `<metering_mode>` | `1770-4`, `1770-3`, `1770-2`, `1770-1`, `LeqA` | `1770-4` |
 | `--dialogue-intelligence` | `<dialogue_intelligence>` | `true`, `false` | `true` |
 | `--speech-threshold` | `<speech_threshold>` | 整数 `0` 至 `100` | `15` |
-| `--data-rate` | `<data_rate>` | `1152`, `1280`, `1408`, `1512`, `1536`, `1664` | 包装器默认 `1152` |
+| `--data-rate` | `<data_rate>` | `1152`, `1280`, `1408`, `1512`, `1536`, `1664` | 随附模板值 `1152` |
 | `--timecode-frame-rate` | 滤镜 `<timecode_frame_rate>` | `not_indicated`, `23.976`, `24`, `25`, `29.97`, `30`, `48`, `50`, `59.94`, `60` | `not_indicated` |
 | `--start` | `<start>` | `first_frame_of_action`、时间码、十进制秒或视频帧编号 | `first_frame_of_action`；不能与分段批量模式并用 |
 | `--end` | `<end>` | `end_of_file`、时间码、十进制秒或视频帧编号 | `end_of_file`；不能与分段批量模式并用 |

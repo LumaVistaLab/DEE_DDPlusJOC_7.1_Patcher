@@ -56,14 +56,43 @@ class WrapperTests(unittest.TestCase):
         temp.mkdir(exist_ok=True)
         return wrapper.make_job_xml(args, self.input, encoded, temp, start, end).getroot()
 
-    def test_original_defaults_and_wrapper_fixed_values_for_height(self) -> None:
-        root = self.xml_root(self.args())
+    def test_template_defaults_and_wrapper_fixed_values_for_height(self) -> None:
+        args = self.args()
+        root = self.xml_root(args)
         base = "./filter/audio/encode_to_atmos_ddp"
         self.assertEqual(root.findtext(f"{base}/data_rate"), "1152")
         self.assertEqual(root.findtext(f"{base}/downmix/preferred_downmix_mode"), "loro")
         self.assertEqual(root.findtext(f"{base}/encoding_backend"), "atmosprocessor")
         self.assertEqual(root.findtext(f"{base}/encoder_mode"), "bluray")
         self.assertIsNone(root.find(f"{base}/custom_dialnorm"))
+
+    def test_xml_override_arguments_do_not_duplicate_template_defaults(self) -> None:
+        parser = wrapper.build_parser()
+        args = parser.parse_args([str(self.root), str(self.input), str(self.root / "output.eb3")])
+        group = next(
+            item
+            for item in parser._action_groups
+            if item.title == "original template parameter overrides (in XML order)"
+        )
+        for action in group._group_actions:
+            self.assertIsNone(getattr(args, action.dest), action.dest)
+
+    def test_xml_parameter_defaults_can_be_customized_in_the_template(self) -> None:
+        template = ET.parse(wrapper.TEMPLATE_PATH)
+        template_root = template.getroot()
+        template_root.find("./filter/audio/encode_to_atmos_ddp/data_rate").text = "1536"
+        template_root.find(
+            "./filter/audio/encode_to_atmos_ddp/loudness/measure_only/speech_threshold"
+        ).text = "27"
+        custom_template = self.root / "custom-template.xml"
+        template.write(custom_template, encoding="utf-8", xml_declaration=True)
+
+        with mock.patch.object(wrapper, "TEMPLATE_PATH", custom_template):
+            root = self.xml_root(self.args())
+
+        base = "./filter/audio/encode_to_atmos_ddp"
+        self.assertEqual(root.findtext(f"{base}/data_rate"), "1536")
+        self.assertEqual(root.findtext(f"{base}/loudness/measure_only/speech_threshold"), "27")
 
     def test_flat71_default_and_user_overrides(self) -> None:
         args = self.args(

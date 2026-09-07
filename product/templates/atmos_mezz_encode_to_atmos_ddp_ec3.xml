@@ -25,7 +25,7 @@
             <speech_threshold>15</speech_threshold>
           </measure_only>
         </loudness>
-        <data_rate>1664</data_rate>
+        <data_rate>1152</data_rate>
         <timecode_frame_rate>not_indicated</timecode_frame_rate>
         <start>first_frame_of_action</start>
         <end>end_of_file</end>

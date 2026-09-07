@@ -30,7 +30,7 @@ from typing import Iterator, Sequence
 
 
 PRODUCT_NAME = "DD+ 7.1 Atmos Wrapper for Dolby Encoding Engine"
-VERSION = "0.1.1-dev"
+VERSION = "0.1.2-dev"
 PRODUCT_DIR = Path(__file__).resolve().parent
 TEMPLATE_PATH = PRODUCT_DIR / "templates" / "atmos_mezz_encode_to_atmos_ddp_ec3.xml"
 DSUR_EX_PATCHER = PRODUCT_DIR / "tools" / "patch_dsur_ex.py"
@@ -161,7 +161,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     original = parser.add_argument_group(
         "original template parameter overrides (in XML order)",
-        "Omitted values are reused from atmos_mezz_encode_to_atmos_ddp_ec3.xml, except data-rate.",
+        "Omitted values are reused from atmos_mezz_encode_to_atmos_ddp_ec3.xml.",
     )
     original.add_argument("--input-timecode-frame-rate", choices=FRAME_RATES)
     original.add_argument("--input-offset", type=nonempty, metavar="VALUE", help="auto, timecode, or decimal seconds")
@@ -173,8 +173,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--data-rate",
         type=int,
         choices=BLURAY_DATA_RATES,
-        default=1152,
-        help="Blu-ray DD+ Atmos kbps (wrapper default: 1152)",
+        help="Blu-ray DD+ Atmos kbps (default: bundled XML template value)",
     )
     original.add_argument("--timecode-frame-rate", choices=FRAME_RATES)
     original.add_argument("--start", type=nonempty, help="timecode, decimal seconds, frame number, or first_frame_of_action")
@@ -191,7 +190,7 @@ def build_parser() -> argparse.ArgumentParser:
     original.add_argument(
         "--preferred-downmix-mode",
         choices=("loro", "ltrt"),
-        help="Blu-ray-valid values; flat-7.1 wrapper default is ltrt",
+        help="Blu-ray-valid values; flat-7.1 selects ltrt when this override is omitted",
     )
     original.add_argument("--surround-trim-5-1", choices=SURROUND_TRIMS)
     original.add_argument("--height-trim-5-1", choices=HEIGHT_TRIMS)
@@ -733,7 +732,7 @@ def make_job_xml(
         args.dialogue_intelligence,
     )
     set_optional(root, "./filter/audio/encode_to_atmos_ddp/loudness/measure_only/speech_threshold", args.speech_threshold)
-    require_element(root, "./filter/audio/encode_to_atmos_ddp/data_rate").text = str(args.data_rate)
+    set_optional(root, "./filter/audio/encode_to_atmos_ddp/data_rate", args.data_rate)
     set_optional(root, "./filter/audio/encode_to_atmos_ddp/timecode_frame_rate", args.timecode_frame_rate)
     set_optional(root, "./filter/audio/encode_to_atmos_ddp/start", start if start is not None else args.start)
     set_optional(root, "./filter/audio/encode_to_atmos_ddp/end", end if end is not None else args.end)
@@ -910,6 +909,22 @@ def plan_record(plan: JobPlan) -> dict[str, object]:
     }
 
 
+def effective_data_rate(plan: JobPlan) -> int:
+    try:
+        root = ET.parse(plan.xml_path).getroot()
+    except (ET.ParseError, OSError) as exc:
+        raise WrapperError(f"could not read generated job XML: {plan.xml_path}: {exc}") from exc
+    value = require_element(root, "./filter/audio/encode_to_atmos_ddp/data_rate").text
+    try:
+        data_rate = int(value) if value is not None else None
+    except ValueError as exc:
+        raise WrapperError(f"generated job XML has invalid data_rate: {value!r}") from exc
+    if data_rate not in BLURAY_DATA_RATES:
+        allowed = ", ".join(str(item) for item in BLURAY_DATA_RATES)
+        raise WrapperError(f"generated job XML data_rate must be one of {allowed}; got {value!r}")
+    return data_rate
+
+
 def execute(args: argparse.Namespace) -> int:
     dee_dir, dee_exe, component = resolve_dee(args.dee)
     input_path, outputs = validate_arguments(args)
@@ -936,7 +951,7 @@ def execute(args: argparse.Namespace) -> int:
         "component": str(component),
         "input": str(input_path),
         "compatibility_layout": args.compatibility_layout,
-        "data_rate": args.data_rate,
+        "data_rate": effective_data_rate(plans[0]),
         "encoding_backend": "atmosprocessor",
         "encoder_mode": "bluray",
         "segmented_batch": args.segmented_batch,
