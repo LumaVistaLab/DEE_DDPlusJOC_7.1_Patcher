@@ -30,7 +30,7 @@ from typing import Iterator, Sequence
 
 
 PRODUCT_NAME = "DD+ 7.1 Atmos Wrapper for Dolby Encoding Engine"
-VERSION = "0.1.2-dev"
+VERSION = "0.2.0-dev"
 PRODUCT_DIR = Path(__file__).resolve().parent
 TEMPLATE_PATH = PRODUCT_DIR / "templates" / "atmos_mezz_encode_to_atmos_ddp_ec3.xml"
 DSUR_EX_PATCHER = PRODUCT_DIR / "tools" / "patch_dsur_ex.py"
@@ -894,6 +894,22 @@ def publish(source: Path, destination: Path, overwrite: bool) -> None:
             temporary.unlink()
 
 
+def finalize_and_publish(args: argparse.Namespace, plan: JobPlan) -> None:
+    if args.compatibility_layout == "flat-7.1":
+        assert plan.finalized_output is not None and plan.ex_log_path is not None
+        print(f"[{plan.index}/{plan.count}] Surround EX finalization: {plan.final_output.name}")
+        run_logged(
+            [sys.executable, str(DSUR_EX_PATCHER), str(plan.encoded_output), str(plan.finalized_output)],
+            PRODUCT_DIR,
+            plan.ex_log_path,
+            f"Surround EX finalization {plan.index}/{plan.count}",
+        )
+
+    source = plan.finalized_output or plan.encoded_output
+    publish(source, plan.final_output, args.overwrite)
+    print(f"Wrote: {plan.final_output}")
+
+
 def plan_record(plan: JobPlan) -> dict[str, object]:
     return {
         "index": plan.index,
@@ -1056,6 +1072,11 @@ def execute(args: argparse.Namespace) -> int:
                 )
                 if not plan.encoded_output.is_file() or plan.encoded_output.stat().st_size == 0:
                     raise WrapperError(f"DEE reported success but produced no non-empty stream: {plan.encoded_output}")
+                if args.segmented_batch:
+                    # Make each completed segment available before starting the
+                    # next DEE job. Flat-7.1 output is finalized first, so the
+                    # requested path never exposes the pre-Surround-EX stream.
+                    finalize_and_publish(args, plan)
         except BaseException as exc:
             primary_error = exc
             manifest["status"] = "failed"
@@ -1095,23 +1116,9 @@ def execute(args: argparse.Namespace) -> int:
                 raise restore_failure
 
     try:
-        if args.compatibility_layout == "flat-7.1":
-            manifest["status"] = "setting-surround-ex"
-            for plan in plans:
-                assert plan.finalized_output is not None and plan.ex_log_path is not None
-                print(f"[{plan.index}/{plan.count}] Surround EX finalization: {plan.final_output.name}")
-                run_logged(
-                    [sys.executable, str(DSUR_EX_PATCHER), str(plan.encoded_output), str(plan.finalized_output)],
-                    PRODUCT_DIR,
-                    plan.ex_log_path,
-                    f"Surround EX finalization {plan.index}/{plan.count}",
-                )
-
-        manifest["status"] = "publishing"
-        for plan in plans:
-            source = plan.finalized_output or plan.encoded_output
-            publish(source, plan.final_output, args.overwrite)
-            print(f"Wrote: {plan.final_output}")
+        if not args.segmented_batch:
+            manifest["status"] = "finalizing"
+            finalize_and_publish(args, plans[0])
 
         manifest["status"] = "complete"
         manifest["completed_at"] = utc_now()

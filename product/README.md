@@ -4,7 +4,7 @@ English | [简体中文](README_zh-CN.md)
 
 Filename: `dee-ddp71-atmos-wrapper.py`
 
-Product version: `0.1.2-dev`
+Product version: `0.2.0-dev`
 
 This is the derivative product of this repository's validated reverse-engineering work. It is the first single-command Dolby Encoding Engine (DEE) v5.2.1 CLI wrapper for modern DD+ Atmos for Blu-ray encoding that lets users select either compatibility-presentation coded-channel layout:
 
@@ -154,6 +154,8 @@ feature.part001of003.eb3
 feature.part002of003.eb3
 feature.part003of003.eb3
 ```
+
+Each segment is finalized and atomically published to its requested output path before the next DEE job starts. If a later segment fails or the batch is interrupted, every earlier published segment remains available; the failed or not-yet-started segment is not published.
 
 Range rules:
 

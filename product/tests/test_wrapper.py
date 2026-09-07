@@ -498,6 +498,70 @@ class WrapperTests(unittest.TestCase):
         self.assertEqual(check.returncode, 0, check.stdout)
         self.assertIn("dsurexmod counts: {2: 1}", check.stdout)
 
+    def test_segmented_batch_publishes_each_completed_segment_immediately(self) -> None:
+        original = PRODUCT_DIR.parent / "dll_original" / wrapper.PATCHED_COMPONENT
+        validated_stream = PRODUCT_DIR.parent / "results" / "atmos916_flat71_P2P3_r03.eb3"
+        if not original.is_file() or not validated_stream.is_file():
+            self.skipTest("repository-only proprietary fixtures are absent")
+        runtime = self.root / "runtime"
+        runtime.mkdir()
+        (runtime / "dee.exe").write_bytes(b"simulated DEE placeholder")
+        component = runtime / wrapper.PATCHED_COMPONENT
+        shutil.copy2(original, component)
+        output_base = self.root / "segmented-flat71.eb3"
+        outputs = wrapper.output_paths(output_base, 2)
+        args = wrapper.build_parser().parse_args(
+            [
+                str(runtime),
+                str(self.input),
+                str(output_base),
+                "--compatibility-layout", "flat-7.1",
+                "--segmented-batch",
+                "--timecode-frame-rate", "24",
+                "--time-base", "file_position",
+                "--segment-start", "file_start",
+                "--segment-point", "00:00:10:00",
+            ]
+        )
+        real_run_logged = wrapper.run_logged
+        dee_job_count = 0
+
+        def simulated_run_logged(command, cwd, log_path, label):
+            nonlocal dee_job_count
+            if label.startswith("DEE job"):
+                dee_job_count += 1
+                self.assertEqual(wrapper.sha256_file(component), wrapper.EXPECTED_FLAT71_SHA256)
+                if dee_job_count == 2:
+                    self.assertTrue(outputs[0].is_file())
+                    self.assertFalse(outputs[1].exists())
+                    raise wrapper.CommandFailure("simulated second DEE job", 77)
+                command = list(command)
+                cli_output = Path(command[command.index("-o") + 1])
+                with validated_stream.open("rb") as handle:
+                    cli_output.write_bytes(handle.read(2560 + 4096))
+                log_path.write_text("simulated DEE success\n", encoding="utf-8")
+                return
+            real_run_logged(command, cwd, log_path, label)
+
+        with mock.patch.object(wrapper, "run_logged", side_effect=simulated_run_logged):
+            with self.assertRaises(wrapper.CommandFailure):
+                wrapper.execute(args)
+        self.assertEqual(wrapper.sha256_file(component), wrapper.SUPPORTED_ORIGINAL_SHA256)
+        self.assertTrue(outputs[0].is_file())
+        self.assertFalse(outputs[1].exists())
+        check = subprocess.run(
+            [sys.executable, str(wrapper.DSUR_EX_PATCHER), "--check", str(outputs[0])],
+            cwd=str(PRODUCT_DIR),
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
+        self.assertEqual(check.returncode, 0, check.stdout)
+        self.assertIn("dsurexmod counts: {2: 1}", check.stdout)
+
     def test_dee_failure_still_restores_original_component(self) -> None:
         original = PRODUCT_DIR.parent / "dll_original" / wrapper.PATCHED_COMPONENT
         if not original.is_file():

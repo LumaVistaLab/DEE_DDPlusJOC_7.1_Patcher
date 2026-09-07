@@ -4,7 +4,7 @@
 
 文件名：`dee-ddp71-atmos-wrapper.py`
 
-产品版本：`0.1.2-dev`
+产品版本：`0.2.0-dev`
 
 这是本仓库已验证逆向工程成果的派生产品，也是首个面向现代 DD+ Atmos for Blu-ray 编码、支持用户选择两种兼容呈现编码声道的 Dolby Encoding Engine（DEE）v5.2.1 单命令 CLI 包装器：
 
@@ -154,6 +154,8 @@ feature.part001of003.eb3
 feature.part002of003.eb3
 feature.part003of003.eb3
 ```
+
+每个分段都会在下一项 DEE 作业开始前完成收尾，并以原子方式发布到目标输出路径。若后续分段失败或批处理被中断，先前已经发布的分段仍然可用；失败或尚未开始的分段不会发布。
 
 区间构造规则：
 
